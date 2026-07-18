@@ -62,7 +62,7 @@ The list is loaded eagerly, so URLs must contain the literal token `__VER__` (NO
   # sha256: "..."          # optional; verified if set
 ```
 Verify every pinned URL at once (HEAD checks) before a long build:
-`python3` loop over `github_bins` doing HEAD requests — see git history / do a quick script.
+`python3 dev/check-urls.py`.
 
 ## Gotchas already solved (don't re-discover)
 
@@ -90,14 +90,12 @@ Verify every pinned URL at once (HEAD checks) before a long build:
 
 ## Fast iteration on neovim priming (avoid full rebuilds)
 
-Test just the LazyVim priming in a throwaway container (mount repo at `/provision`, feed script
-via stdin because only `/home/ttutko` is shared into the lima VM):
 ```bash
-nerdctl run --rm -i -v "$PWD":/provision:ro debian:12-slim bash -s < prime-test.sh
+dev/prime-test.sh          # exercises prime.lua + prime-ts.lua in a throwaway container
 ```
-where `prime-test.sh` installs nvim 0.11.7 + tree-sitter CLI + gcc, copies `config/nvim`, then
-runs `prime.lua` then `prime-ts.lua` (see git history for the exact script). Confirms parser
-count > 0 and Mason tools in minutes instead of a full playbook run.
+Installs nvim + tree-sitter CLI + gcc, copies `config/nvim`, runs both priming passes, and
+reports plugin/parser/Mason counts — in ~2-4 min instead of a full playbook run. Versions come
+from `ansible/vars/versions.yml`. See `dev/README.md`.
 
 ## Reproducibility
 Everything non-apt is pinned in `ansible/vars/versions.yml`. If a release URL 404s at build
