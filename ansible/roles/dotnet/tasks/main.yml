@@ -1,0 +1,39 @@
+---
+# .NET SDKs via the official dotnet-install.sh (works offline afterwards).
+# Installs each channel in vars/versions.yml (8.0 LTS + 10.0 LTS) side by side.
+
+- name: Download dotnet-install.sh
+  ansible.builtin.get_url:
+    url: https://dot.net/v1/dotnet-install.sh
+    dest: /tmp/dotnet-install.sh
+    mode: "0755"
+
+- name: Install .NET SDK channels into /usr/lib/dotnet
+  ansible.builtin.command: >
+    /tmp/dotnet-install.sh
+    --channel {{ item }}
+    --install-dir /usr/lib/dotnet
+    --no-path
+  loop: "{{ dotnet_channels }}"
+  changed_when: true
+
+- name: Symlink dotnet onto PATH
+  ansible.builtin.file:
+    src: /usr/lib/dotnet/dotnet
+    dest: /usr/local/bin/dotnet
+    state: link
+    force: true
+
+- name: Configure DOTNET_ROOT + telemetry opt-out system-wide
+  ansible.builtin.copy:
+    dest: /etc/profile.d/dotnet.sh
+    mode: "0644"
+    content: |
+      export DOTNET_ROOT=/usr/lib/dotnet
+      export DOTNET_CLI_TELEMETRY_OPTOUT=1
+      export PATH="$PATH:/usr/lib/dotnet:$HOME/.dotnet/tools"
+
+- name: Remove dotnet-install.sh
+  ansible.builtin.file:
+    path: /tmp/dotnet-install.sh
+    state: absent

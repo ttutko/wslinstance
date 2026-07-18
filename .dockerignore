@@ -1,0 +1,5 @@
+bundle/
+.git/
+*.swp
+.DS_Store
+README.md

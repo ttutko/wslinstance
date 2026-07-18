@@ -1,0 +1,68 @@
+# Offline verification list:  label <TAB> shell command (exit 0 == pass)
+# Run via test-offline.sh. Everything here must succeed with NO network.
+# Lines beginning with # are ignored.
+
+# --- core / shell ---
+jq	jq --version
+zsh	zsh --version
+starship	starship --version
+zoxide	zoxide --version
+fzf	fzf --version
+tmux	tmux -V
+exa	exa --version
+duf	duf --version
+bpytop	bpytop --version
+xsel	test -x "$(command -v xsel)"
+zap	test -f "$HOME/.local/share/zap/zap.zsh"
+tcpdump	tcpdump --version
+rg	rg --version
+
+# --- editors / files ---
+nvim	nvim --version
+lazyvim-load	vim --headless +qa
+lazyvim-plugins	test -d "$HOME/.local/share/lvim/lazy/LazyVim"
+treesitter-parsers	find "$HOME/.local/share/lvim" -path '*parser*' -name '*.so' | grep -q .
+mason-lsps	ls "$HOME/.local/share/lvim/mason/bin" 2>/dev/null | grep -q .
+yazi	yazi --version
+
+# --- git ---
+git	git --version
+lazygit	lazygit --version
+glab	glab --version
+
+# --- kubernetes ---
+kubectl	kubectl version --client
+kubecolor	kubecolor version --client
+kubectx	test -x "$(command -v kubectx)"
+kubens	test -x "$(command -v kubens)"
+kubie	kubie --version
+k9s	k9s version -s
+stern	stern --version
+helm	helm version
+popeye	popeye --help
+resource-capacity	kube-capacity --help
+resource-capacity-plugin	test -x "$(command -v kubectl-resource_capacity)"
+kubectl-neat	kubectl-neat --help
+
+# --- containers / registries ---
+skopeo	skopeo --version
+oras	oras version
+dive	dive --version
+
+# --- dev SDKs / python ---
+dotnet-8	dotnet --list-sdks | grep -q '^8\.'
+dotnet-10	dotnet --list-sdks | grep -q '^10\.'
+pwsh	pwsh --version
+pipx	pipx --version
+poetry	poetry --version
+pipenv	pipenv --version
+
+# --- networking / secrets ---
+httpie	http --version
+bw	bw --version
+
+# --- docs / help (offline) ---
+tldr-cache	tldr tar
+chtsh-client	test -x "$(command -v cht.sh)"
+wsltools	wsltools
+man-wsltools	man -w wsltools

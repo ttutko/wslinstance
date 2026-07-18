@@ -1,0 +1,22 @@
+---
+# Python app tooling via pipx. Installed system-wide so the binaries land in
+# /usr/local/bin (on PATH for everyone). pipx itself comes from apt.
+# httpie and bpytop are installed via apt in the apt_tools role.
+
+- name: Ensure system pipx dirs exist
+  ansible.builtin.file:
+    path: /opt/pipx
+    state: directory
+    mode: "0755"
+
+- name: Install poetry and pipenv with pipx (system-wide)
+  ansible.builtin.command: "pipx install {{ item }}"
+  environment:
+    PIPX_HOME: /opt/pipx
+    PIPX_BIN_DIR: /usr/local/bin
+  loop:
+    - poetry
+    - pipenv
+  register: pipx_install
+  changed_when: "'installed package' in pipx_install.stdout"
+  failed_when: pipx_install.rc != 0 and 'already seems to be installed' not in pipx_install.stdout

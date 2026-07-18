@@ -1,0 +1,153 @@
+---
+# neovim (from the official tarball — apt's is too old for LazyVim) plus a
+# LazyVim config exposed on `vim`/`lvim`, primed so all downloads happen now.
+
+# --- 1. neovim binary -------------------------------------------------------
+- name: neovim work dir
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: -nvim
+  register: nvim_work
+
+- name: Download neovim {{ neovim_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/neovim/neovim/releases/download/v{{ neovim_version }}/nvim-linux-x86_64.tar.gz"
+    dest: "{{ nvim_work.path }}/nvim.tar.gz"
+    mode: "0644"
+
+- name: Extract neovim into /opt
+  ansible.builtin.unarchive:
+    src: "{{ nvim_work.path }}/nvim.tar.gz"
+    dest: /opt
+    remote_src: true
+
+- name: Symlink nvim onto PATH
+  ansible.builtin.file:
+    src: /opt/nvim-linux-x86_64/bin/nvim
+    dest: /usr/local/bin/nvim
+    state: link
+    force: true
+
+# --- 2. vim / lvim wrappers (LazyVim via NVIM_APPNAME) ----------------------
+- name: Install vim/lvim wrappers that launch the LazyVim config
+  ansible.builtin.copy:
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+    content: |
+      #!/bin/sh
+      # Launch neovim with the LazyVim configuration (NVIM_APPNAME=lvim).
+      # Plain `nvim` stays vanilla; `vim`/`lvim` get the full IDE setup.
+      exec env NVIM_APPNAME=lvim /usr/local/bin/nvim "$@"
+  loop:
+    - vim
+    - lvim
+
+# --- 3. LazyVim config (editable sample) ------------------------------------
+- name: Install LazyVim config for root and future users
+  ansible.builtin.copy:
+    src: "{{ src_root }}/config/nvim/"
+    dest: "{{ item }}/.config/lvim/"
+    mode: "0644"
+    directory_mode: "0755"
+  loop:
+    - /root
+    - /etc/skel
+
+# --- 4. Offline priming (needs network + a compiler; both removed after) ----
+- name: Install build toolchain for treesitter parser compilation
+  ansible.builtin.apt:
+    name:
+      - gcc
+      - g++
+      - make
+      - libc6-dev
+    state: present
+    update_cache: true
+
+# nvim-treesitter (main branch) compiles parsers with the tree-sitter CLI.
+# Mason's prebuilt CLI is linked against glibc 2.39 and will NOT run on Debian
+# 12 (glibc 2.36), so install a glibc-compatible build to /usr/local/bin. Mason
+# is set to PATH="append" (see config/nvim/lua/plugins/mason.lua) so this wins.
+- name: Download glibc-compatible tree-sitter CLI {{ treesitter_cli_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/tree-sitter/tree-sitter/releases/download/v{{ treesitter_cli_version }}/tree-sitter-linux-x64.gz"
+    dest: /tmp/tree-sitter.gz
+    mode: "0644"
+
+- name: Install tree-sitter CLI
+  ansible.builtin.shell: |
+    set -e
+    gunzip -f /tmp/tree-sitter.gz
+    install -m 0755 /tmp/tree-sitter /usr/local/bin/tree-sitter
+    rm -f /tmp/tree-sitter
+  args:
+    creates: /usr/local/bin/tree-sitter
+
+- name: Copy priming scripts
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ nvim_work.path }}/{{ item }}"
+    mode: "0644"
+  loop:
+    - prime.lua
+    - prime-ts.lua
+
+# Two priming passes, each its own headless nvim (treesitter must NOT share a
+# session with the Mason pass). Wrapped in `timeout` so a headless deadlock
+# fails the build (rc 124) instead of hanging forever; GIT_TERMINAL_PROMPT=0
+# stops git blocking on a prompt with no tty.
+- name: "Prime LazyVim pass 1 (plugins + Mason tools)"
+  ansible.builtin.command: >
+    timeout 1500 /usr/local/bin/nvim --headless
+    -c "luafile {{ nvim_work.path }}/prime.lua"
+  environment: &prime_env
+    NVIM_APPNAME: lvim
+    HOME: /root
+    GIT_TERMINAL_PROMPT: "0"
+    GIT_SSH_COMMAND: "ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+  changed_when: true
+
+- name: "Prime LazyVim pass 2 (treesitter parsers)"
+  ansible.builtin.command: >
+    timeout 900 /usr/local/bin/nvim --headless
+    -c "luafile {{ nvim_work.path }}/prime-ts.lua"
+  environment: *prime_env
+  changed_when: true
+
+- name: Verify treesitter parsers were compiled (offline requirement)
+  ansible.builtin.find:
+    paths: /root/.local/share/lvim/site/parser
+    patterns: "*.so"
+  register: ts_parsers
+
+- name: Assert parsers present
+  ansible.builtin.assert:
+    that: ts_parsers.matched | int > 0
+    fail_msg: "No treesitter parsers were compiled — offline highlighting would fail."
+    success_msg: "{{ ts_parsers.matched }} treesitter parsers compiled."
+
+- name: Verify LazyVim plugin dir was populated (fail build early if not)
+  ansible.builtin.stat:
+    path: /root/.local/share/lvim/lazy/lazy.nvim
+  register: lazy_dir
+
+- name: Assert LazyVim primed
+  ansible.builtin.assert:
+    that: lazy_dir.stat.exists
+    fail_msg: "LazyVim priming failed — lazy.nvim not present. Check build network access."
+
+- name: Remove build toolchain (parsers are already compiled)
+  ansible.builtin.apt:
+    name:
+      - gcc
+      - g++
+      - make
+      - libc6-dev
+    state: absent
+    purge: true
+    autoremove: true
+
+- name: Clean neovim work dir
+  ansible.builtin.file:
+    path: "{{ nvim_work.path }}"
+    state: absent

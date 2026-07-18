@@ -1,0 +1,42 @@
+jq
+neovim, runs when using standard 'nvim' command
+lazyvim, runs when using 'vim' or 'lvim' command. I would also like to provide a list of plugins, configuration, and keybinds to configure but for now just provide some sample files for me to edit. All plugins that perform additional downloads will need to be activated in a way that that forces the downloads to occur so that they will work offline.
+k9s
+kubectl
+skopeo
+oras
+gitlab cli
+dotnet sdk, 8 and 10
+bitwarden cli
+dive
+bpytop
+chtsh
+duf
+exa, this should be aliased to replace the default 'ls' with the arguments "--group-directories-first -a -l --icons"
+fzf
+git
+httpie
+lazygit
+pipenv
+pipx
+poetry
+pwsh
+ripgrep
+starship, configured as the default prompt with kubernetes enabled
+tcpdump
+tldr
+tmux
+xsel
+zap
+zoxide
+zsh, configured as the default shell
+stern
+kubecolor
+kubectx
+kubens
+kubie
+resource-capacity
+popeye
+kubectl-neat
+helm
+yazi

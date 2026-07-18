@@ -1,0 +1,30 @@
+---
+# Provisions the Debian 12 rootfs for the airgapped WSL instance.
+# Run inside the Docker build (or against a running container) as:
+#   ansible-playbook -i 'localhost,' -c local ansible/playbook.yml
+- name: Build airgapped WSL instance
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: false
+
+  vars:
+    # Source tree location (works in Docker at /provision and from a repo checkout).
+    src_root: "{{ playbook_dir | dirname }}"
+
+  vars_files:
+    - vars/versions.yml
+
+  roles:
+    - base            # locale, wsl.conf, base dirs
+    - apt_tools       # everything available from Debian apt
+    - github_bins     # pinned release binaries (kube tools, shell tools, etc.)
+    - kube_tools      # kube-specific finishing touches (krew-style symlinks, completion)
+    - neovim          # neovim tarball + LazyVim, primed for offline
+    - dotnet          # .NET 8 + 10 SDKs
+    - powershell      # pwsh
+    - python_tools    # pipx, poetry, pipenv
+    - shell           # zsh default, zap plugins, starship, zoxide, aliases
+    - offline_data    # tldr cache, cht.sh client
+    - firstrun        # first-run wizard + zsh trigger
+    - docs            # wsltools command, man page, baked-in self-test

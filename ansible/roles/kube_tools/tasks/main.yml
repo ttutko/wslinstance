@@ -1,0 +1,24 @@
+---
+# Kubernetes finishing touches. The binaries themselves come from github_bins.
+# Shell completions for kubectl/helm are wired up in the `shell` role's zshrc
+# (sourced at shell start so they always match the installed versions).
+
+- name: Ensure ~/.kube exists for root
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: "0700"
+
+- name: Seed a placeholder kubeconfig so tools don't error on a missing file
+  ansible.builtin.copy:
+    dest: /root/.kube/config
+    mode: "0600"
+    force: false
+    content: |
+      # Place your kubeconfig contents here (or set $KUBECONFIG).
+      apiVersion: v1
+      kind: Config
+      clusters: []
+      contexts: []
+      users: []
+      current-context: ""

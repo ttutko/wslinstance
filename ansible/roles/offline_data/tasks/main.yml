@@ -1,0 +1,51 @@
+---
+# Offline cheatsheet data.
+#  * tldr  -> tealdeer (single static binary) with its pages cache built now,
+#             so `tldr <cmd>` returns content with no network.
+#  * cht.sh -> client installed; NOTE it queries a remote server, so it is only
+#             useful offline if you stand up a local cheat.sh server (documented
+#             in README). tldr is the primary offline cheatsheet source.
+
+# --- tealdeer (tldr) --------------------------------------------------------
+- name: Install tealdeer (tldr) binary
+  ansible.builtin.get_url:
+    url: "https://github.com/dbrgn/tealdeer/releases/download/v{{ tealdeer_version }}/tealdeer-linux-x86_64-musl"
+    dest: /usr/local/bin/tldr
+    mode: "0755"
+
+- name: Build tldr pages cache (network at build; offline afterwards)
+  ansible.builtin.command: /usr/local/bin/tldr --update
+  environment:
+    HOME: /root
+  changed_when: true
+
+- name: Ensure skel cache dir exists
+  ansible.builtin.file:
+    path: /etc/skel/.cache
+    state: directory
+    mode: "0755"
+
+- name: Seed the tldr cache into /etc/skel for future users
+  ansible.builtin.command: cp -a /root/.cache/tealdeer /etc/skel/.cache/tealdeer
+  args:
+    creates: /etc/skel/.cache/tealdeer
+
+# --- cht.sh client ----------------------------------------------------------
+- name: Install rlwrap (nicer cht.sh shell)
+  ansible.builtin.apt:
+    name: rlwrap
+    state: present
+    update_cache: true
+
+- name: Install cht.sh client
+  ansible.builtin.get_url:
+    url: https://cht.sh/:cht.sh
+    dest: /usr/local/bin/cht.sh
+    mode: "0755"
+
+- name: Symlink `chtsh` -> cht.sh
+  ansible.builtin.file:
+    src: /usr/local/bin/cht.sh
+    dest: /usr/local/bin/chtsh
+    state: link
+    force: true

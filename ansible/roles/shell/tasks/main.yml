@@ -1,0 +1,67 @@
+---
+# zsh as the default shell, zap plugin manager, starship, zoxide integration,
+# aliases — all primed so plugins are present offline.
+
+# --- zap plugin manager -----------------------------------------------------
+- name: Clone zap plugin manager
+  ansible.builtin.git:
+    repo: https://github.com/zap-zsh/zap.git
+    dest: /root/.local/share/zap
+    version: release-v1
+    depth: 1
+
+# --- deploy config to root + skel -------------------------------------------
+- name: Ensure config dirs exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /root/.config/wsl
+    - /etc/skel/.config/wsl
+    - /etc/skel/.local/share
+
+- name: Install zshrc
+  ansible.builtin.copy:
+    src: "{{ src_root }}/config/zshrc"
+    dest: "{{ item }}/.zshrc"
+    mode: "0644"
+  loop:
+    - /root
+    - /etc/skel
+
+- name: Install aliases
+  ansible.builtin.copy:
+    src: "{{ src_root }}/config/aliases.zsh"
+    dest: "{{ item }}/.config/wsl/aliases.zsh"
+    mode: "0644"
+  loop:
+    - /root
+    - /etc/skel
+
+- name: Install starship config
+  ansible.builtin.copy:
+    src: "{{ src_root }}/config/starship.toml"
+    dest: "{{ item }}/.config/starship.toml"
+    mode: "0644"
+  loop:
+    - /root
+    - /etc/skel
+
+# --- default shell ----------------------------------------------------------
+- name: Set zsh as root's login shell
+  ansible.builtin.user:
+    name: root
+    shell: /usr/bin/zsh
+
+# --- prime zap plugins (clones them so they exist offline) ------------------
+- name: Prime zap plugins for root (non-interactive; wizard skipped, no tty)
+  ansible.builtin.command: zsh -ic 'exit 0'
+  environment:
+    HOME: /root
+  changed_when: true
+
+- name: Copy primed zap tree into /etc/skel for future users
+  ansible.builtin.command: cp -a /root/.local/share/zap /etc/skel/.local/share/zap
+  args:
+    creates: /etc/skel/.local/share/zap

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# wsltools — list every preinstalled tool, grouped, with a usage example.
+# Data source: /usr/local/share/wsl/tools.tsv  (category<TAB>cmd<TAB>desc<TAB>example)
+set -euo pipefail
+
+TSV="${WSLTOOLS_TSV:-/usr/local/share/wsl/tools.tsv}"
+[ -f "$TSV" ] || TSV="$(dirname "$0")/tools.tsv"
+
+if [ ! -f "$TSV" ]; then
+  echo "wsltools: data file not found ($TSV)" >&2
+  exit 1
+fi
+
+# Colors (disabled if not a tty or NO_COLOR set)
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  B=$'\033[1m'; DIM=$'\033[2m'; CYAN=$'\033[36m'; GRN=$'\033[32m'; YEL=$'\033[33m'; R=$'\033[0m'
+else
+  B=""; DIM=""; CYAN=""; GRN=""; YEL=""; R=""
+fi
+
+printf '%s\n' "${B}Preinstalled tools in this WSL instance${R}"
+printf '%s\n' "${DIM}Run 'man wsltools' for the full reference. Try 'tldr <cmd>' for offline examples.${R}"
+
+last=""
+# Sort by category (stable) but keep insertion order within category via nl trick.
+while IFS=$'\t' read -r cat cmd desc example; do
+  [ -z "${cat:-}" ] && continue
+  if [ "$cat" != "$last" ]; then
+    printf '\n%s\n' "${B}${YEL}${cat}${R}"
+    last="$cat"
+  fi
+  printf '  %s%-20s%s %s\n' "${CYAN}" "$cmd" "${R}" "$desc"
+  printf '      %s%s%s\n' "${DIM}${GRN}\$ ${example}${R}" "" ""
+done < "$TSV"
+
+printf '\n'

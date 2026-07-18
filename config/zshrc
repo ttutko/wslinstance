@@ -1,0 +1,73 @@
+# =============================================================================
+# WSL airgapped instance — zsh configuration
+# Managed defaults live here; per-user tweaks go in ~/.zshrc.local (sourced last)
+# and the first-run wizard writes ~/.config/wsl/*.conf.
+# =============================================================================
+
+# ---- History ---------------------------------------------------------------
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS SHARE_HISTORY INC_APPEND_HISTORY
+
+# ---- Zap plugin manager ----------------------------------------------------
+[ -f "$HOME/.local/share/zap/zap.zsh" ] && source "$HOME/.local/share/zap/zap.zsh"
+
+# Plugin toggles (written by wsl-firstrun; default = all enabled).
+[ -f "$HOME/.config/wsl/plugins.conf" ] && source "$HOME/.config/wsl/plugins.conf"
+if typeset -f plug >/dev/null; then
+  [ "${WSL_PLUGIN_COMPLETIONS:-1}" = 1 ]    && plug "zsh-users/zsh-completions"
+  [ "${WSL_PLUGIN_AUTOSUGGESTIONS:-1}" = 1 ] && plug "zsh-users/zsh-autosuggestions"
+  # syntax-highlighting must be sourced last.
+  [ "${WSL_PLUGIN_SYNTAX:-1}" = 1 ]         && plug "zsh-users/zsh-syntax-highlighting"
+fi
+
+# ---- Completions -----------------------------------------------------------
+autoload -Uz compinit && compinit -u
+zstyle ':completion:*' menu select
+
+# ---- Keybindings (emacs default; wizard may switch to vi) -------------------
+if [ -f "$HOME/.config/wsl/keybind.zsh" ]; then
+  source "$HOME/.config/wsl/keybind.zsh"
+else
+  bindkey -e
+fi
+
+# ---- Aliases & tool integrations -------------------------------------------
+[ -f "$HOME/.config/wsl/aliases.zsh" ] && source "$HOME/.config/wsl/aliases.zsh"
+
+# starship prompt (kubernetes module enabled in ~/.config/starship.toml)
+command -v starship >/dev/null && eval "$(starship init zsh)"
+
+# zoxide smarter cd (use `z <dir>`; `cd` remains standard)
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+
+# fzf keybindings + completion (Debian ships example scripts)
+for f in /usr/share/doc/fzf/examples/key-bindings.zsh \
+         /usr/share/doc/fzf/examples/completion.zsh; do
+  [ -f "$f" ] && source "$f"
+done
+
+# Kubernetes completions (generated from the installed binaries)
+if command -v kubectl >/dev/null; then
+  source <(kubectl completion zsh)
+  compdef kubecolor=kubectl 2>/dev/null
+  # let `k` complete like kubectl
+  compdef k=kubectl 2>/dev/null
+fi
+command -v helm  >/dev/null && source <(helm completion zsh)
+
+# ---- PATH additions --------------------------------------------------------
+export PATH="$HOME/.local/bin:$HOME/.dotnet/tools:$PATH"
+export DOTNET_ROOT=/usr/lib/dotnet
+export EDITOR="nvim"
+
+# ---- First-run wizard trigger (runs once per user) -------------------------
+if [ -z "$WSL_FIRSTRUN_DONE" ] && [ ! -f "$HOME/.config/wsl/.firstrun-done" ] \
+   && [ -t 1 ] && command -v wsl-firstrun >/dev/null; then
+  export WSL_FIRSTRUN_DONE=1
+  wsl-firstrun
+fi
+
+# ---- Local overrides -------------------------------------------------------
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"

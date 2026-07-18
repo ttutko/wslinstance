@@ -1,0 +1,80 @@
+---
+# Install a single pinned binary. Operates on the loop var `item` from
+# vars/versions.yml. Handles: raw | tar.gz | zip | deb, single or multi binary,
+# optional sha256 verification, optional extra symlinks.
+
+- name: "[{{ item.name }}] work dir"
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: "-{{ item.name }}"
+  register: work
+
+# item.url carries the literal token __VER__ (not Jinja, so the whole
+# github_bins list can be loaded without a self-referencing template).
+- name: "[{{ item.name }}] resolve url"
+  ansible.builtin.set_fact:
+    dl_url: "{{ item.url | replace('__VER__', item.version) }}"
+
+- name: "[{{ item.name }}] download"
+  ansible.builtin.get_url:
+    url: "{{ dl_url }}"
+    dest: "{{ work.path }}/{{ dl_url | basename }}"
+    mode: "0644"
+    checksum: "{{ ('sha256:' ~ item.sha256) if (item.sha256 is defined and item.sha256) else omit }}"
+  register: dl
+
+# --- raw: the download IS the binary ----------------------------------------
+- name: "[{{ item.name }}] install raw binary"
+  ansible.builtin.copy:
+    src: "{{ dl.dest }}"
+    dest: "{{ item.bin_dest }}"
+    mode: "0755"
+    remote_src: true
+  when: item.type == 'raw'
+
+# --- deb --------------------------------------------------------------------
+- name: "[{{ item.name }}] install .deb"
+  ansible.builtin.apt:
+    deb: "{{ dl.dest }}"
+  when: item.type == 'deb'
+
+# --- archives (tar.gz / zip) ------------------------------------------------
+- name: "[{{ item.name }}] extract archive"
+  ansible.builtin.unarchive:
+    src: "{{ dl.dest }}"
+    dest: "{{ work.path }}"
+    remote_src: true
+  when: item.type in ['tar.gz', 'zip']
+
+- name: "[{{ item.name }}] normalise binary list"
+  ansible.builtin.set_fact:
+    _bins: "{{ item.bins if (item.bins is defined) else [{'src': item.bin_src, 'dest': item.bin_dest}] }}"
+  when: item.type in ['tar.gz', 'zip']
+
+- name: "[{{ item.name }}] install binaries from archive"
+  ansible.builtin.copy:
+    src: "{{ work.path }}/{{ b.src }}"
+    dest: "{{ b.dest }}"
+    mode: "0755"
+    remote_src: true
+  loop: "{{ _bins | default([]) }}"
+  loop_control:
+    loop_var: b
+    label: "{{ b.dest }}"
+  when: item.type in ['tar.gz', 'zip']
+
+# --- extra symlinks ---------------------------------------------------------
+- name: "[{{ item.name }}] symlinks"
+  ansible.builtin.file:
+    src: "{{ item.bin_dest }}"
+    dest: "{{ lnk }}"
+    state: link
+    force: true
+  loop: "{{ item.symlinks | default([]) }}"
+  loop_control:
+    loop_var: lnk
+
+- name: "[{{ item.name }}] clean up work dir"
+  ansible.builtin.file:
+    path: "{{ work.path }}"
+    state: absent

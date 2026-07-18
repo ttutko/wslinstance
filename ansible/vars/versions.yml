@@ -1,0 +1,182 @@
+# =============================================================================
+# Pinned versions for every tool NOT installed from Debian apt.
+#
+# WHY PINNED: the build must be reproducible and the resulting rootfs must work
+# with no network. Bumping a tool = change its `version` here (the URL is built
+# from it). If a project changes its release asset naming, adjust `url`.
+#
+# OPTIONAL INTEGRITY: set `sha256` on any item to have the build verify the
+# download. Leave it unset to skip verification (hashes can't be known ahead of
+# a first download; pin them afterwards for supply-chain assurance).
+#
+# ARCHIVE TYPES understood by roles/github_bins:
+#   raw    -> file IS the binary; chmod +x -> bin_dest
+#   tar.gz -> extract, copy bin_src -> bin_dest (repeat via `bins:` for multi)
+#   zip    -> extract, copy bin_src -> bin_dest (repeat via `bins:` for multi)
+#   deb    -> dpkg -i
+# =============================================================================
+
+arch_deb: amd64
+arch_x86: x86_64
+
+# ---- Versions for the specialised roles (neovim / dotnet / pwsh) ----
+neovim_version: "0.11.7"   # LazyVim requires >= 0.11.2
+# tree-sitter CLI used to compile parsers. Must run on Debian 12 (glibc 2.36):
+# 0.25.6/0.25.10 are built against an older glibc; 0.25.0 needs 2.39 (avoid).
+treesitter_cli_version: "0.25.10"
+dotnet_channels:
+  - "8.0"
+  - "10.0"
+powershell_version: "7.4.6"
+tealdeer_version: "1.8.1"   # tldr client; older pins have stale pages-archive URLs
+
+# ---- Single-binary / archive downloads handled by roles/github_bins ----
+github_bins:
+
+  # Kubernetes -----------------------------------------------------------
+  - name: kubectl
+    version: "1.31.4"
+    url: "https://dl.k8s.io/release/v__VER__/bin/linux/amd64/kubectl"
+    type: raw
+    bin_dest: /usr/local/bin/kubectl
+
+  - name: helm
+    version: "3.16.3"
+    url: "https://get.helm.sh/helm-v__VER__-linux-amd64.tar.gz"
+    type: tar.gz
+    bin_src: linux-amd64/helm
+    bin_dest: /usr/local/bin/helm
+
+  - name: k9s
+    version: "0.32.7"
+    url: "https://github.com/derailed/k9s/releases/download/v__VER__/k9s_Linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: k9s
+    bin_dest: /usr/local/bin/k9s
+
+  - name: stern
+    version: "1.31.0"
+    url: "https://github.com/stern/stern/releases/download/v__VER__/stern___VER___linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: stern
+    bin_dest: /usr/local/bin/stern
+
+  - name: kubectx
+    version: "0.9.5"
+    url: "https://github.com/ahmetb/kubectx/releases/download/v__VER__/kubectx_v__VER___linux_x86_64.tar.gz"
+    type: tar.gz
+    bin_src: kubectx
+    bin_dest: /usr/local/bin/kubectx
+
+  - name: kubens
+    version: "0.9.5"
+    url: "https://github.com/ahmetb/kubectx/releases/download/v__VER__/kubens_v__VER___linux_x86_64.tar.gz"
+    type: tar.gz
+    bin_src: kubens
+    bin_dest: /usr/local/bin/kubens
+
+  - name: kubie
+    version: "0.23.0"
+    url: "https://github.com/sbstp/kubie/releases/download/v__VER__/kubie-linux-amd64"
+    type: raw
+    bin_dest: /usr/local/bin/kubie
+
+  - name: kubecolor
+    version: "0.5.0"
+    url: "https://github.com/kubecolor/kubecolor/releases/download/v__VER__/kubecolor___VER___linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: kubecolor
+    bin_dest: /usr/local/bin/kubecolor
+
+  - name: kubectl-neat
+    version: "2.0.4"
+    url: "https://github.com/itaysk/kubectl-neat/releases/download/v__VER__/kubectl-neat_linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: kubectl-neat
+    bin_dest: /usr/local/bin/kubectl-neat
+
+  - name: popeye
+    version: "0.21.6"
+    url: "https://github.com/derailed/popeye/releases/download/v__VER__/popeye_linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: popeye
+    bin_dest: /usr/local/bin/popeye
+
+  # resource-capacity == robscott/kube-capacity. Installed as `kube-capacity`
+  # AND symlinked to `kubectl-resource_capacity` so `kubectl resource-capacity`
+  # works too (matches the krew plugin name the user knows).
+  - name: kube-capacity
+    version: "0.8.0"
+    url: "https://github.com/robscott/kube-capacity/releases/download/v__VER__/kube-capacity_v__VER___linux_x86_64.tar.gz"
+    type: tar.gz
+    bin_src: kube-capacity
+    bin_dest: /usr/local/bin/kube-capacity
+    symlinks:
+      - /usr/local/bin/kubectl-resource_capacity
+
+  - name: oras
+    version: "1.2.0"
+    url: "https://github.com/oras-project/oras/releases/download/v__VER__/oras___VER___linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: oras
+    bin_dest: /usr/local/bin/oras
+
+  # Containers -----------------------------------------------------------
+  - name: dive
+    version: "0.12.0"
+    url: "https://github.com/wagoodman/dive/releases/download/v__VER__/dive___VER___linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: dive
+    bin_dest: /usr/local/bin/dive
+
+  # Git / dev ------------------------------------------------------------
+  - name: lazygit
+    version: "0.44.1"
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v__VER__/lazygit___VER___Linux_x86_64.tar.gz"
+    type: tar.gz
+    bin_src: lazygit
+    bin_dest: /usr/local/bin/lazygit
+
+  # gitlab cli (hosted on gitlab.com, not github)
+  - name: glab
+    version: "1.48.0"
+    url: "https://gitlab.com/gitlab-org/cli/-/releases/v__VER__/downloads/glab___VER___linux_amd64.tar.gz"
+    type: tar.gz
+    bin_src: bin/glab
+    bin_dest: /usr/local/bin/glab
+
+  # Shell / prompt / nav -------------------------------------------------
+  - name: starship
+    version: "1.21.1"
+    url: "https://github.com/starship/starship/releases/download/v__VER__/starship-x86_64-unknown-linux-gnu.tar.gz"
+    type: tar.gz
+    bin_src: starship
+    bin_dest: /usr/local/bin/starship
+
+  - name: zoxide
+    version: "0.9.6"
+    url: "https://github.com/ajeetdsouza/zoxide/releases/download/v__VER__/zoxide-__VER__-x86_64-unknown-linux-musl.tar.gz"
+    type: tar.gz
+    bin_src: zoxide
+    bin_dest: /usr/local/bin/zoxide
+
+  # File manager (ships two binaries: yazi + ya) -------------------------
+  - name: yazi
+    version: "0.4.2"
+    url: "https://github.com/sxyazi/yazi/releases/download/v__VER__/yazi-x86_64-unknown-linux-gnu.zip"
+    type: zip
+    bins:
+      - src: yazi-x86_64-unknown-linux-gnu/yazi
+        dest: /usr/local/bin/yazi
+      - src: yazi-x86_64-unknown-linux-gnu/ya
+        dest: /usr/local/bin/ya
+
+  # Secrets --------------------------------------------------------------
+  # Bitwarden standalone CLI (self-contained binary, no Node runtime needed)
+  - name: bw
+    version: "2024.12.0"
+    url: "https://github.com/bitwarden/clients/releases/download/cli-v__VER__/bw-linux-__VER__.zip"
+    type: zip
+    bins:
+      - src: bw
+        dest: /usr/local/bin/bw

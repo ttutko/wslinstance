@@ -1,0 +1,55 @@
+---
+# Install the tool catalogue (tools.tsv), the `wsltools` command, generate the
+# man page from that single source, and bake the offline self-test into the image.
+
+- name: Ensure shared data dir exists
+  ansible.builtin.file:
+    path: /usr/local/share/wsl
+    state: directory
+    mode: "0755"
+
+- name: Install tools.tsv (single source of truth)
+  ansible.builtin.copy:
+    src: "{{ src_root }}/docs/tools.tsv"
+    dest: /usr/local/share/wsl/tools.tsv
+    mode: "0644"
+
+- name: Install wsltools command
+  ansible.builtin.copy:
+    src: "{{ src_root }}/docs/wsltools"
+    dest: /usr/local/bin/wsltools
+    mode: "0755"
+
+- name: Install man page generator
+  ansible.builtin.copy:
+    src: "{{ src_root }}/docs/gen-manpage.sh"
+    dest: /usr/local/bin/wsltools-genman
+    mode: "0755"
+
+- name: Generate wsltools(1) man page from tools.tsv
+  ansible.builtin.command: >
+    /usr/local/bin/wsltools-genman
+    /usr/local/share/wsl/tools.tsv
+    /usr/share/man/man1/wsltools.1
+  changed_when: true
+
+- name: Update man database
+  ansible.builtin.command: mandb -q
+  changed_when: true
+
+# --- bake the offline self-test into the image ------------------------------
+- name: Install self-test into the image
+  ansible.builtin.copy:
+    src: "{{ src_root }}/tests/{{ item }}"
+    dest: "/usr/local/share/wsl/{{ item }}"
+    mode: "0755"
+  loop:
+    - test-offline.sh
+    - expected-tools.txt
+
+- name: Symlink wsl-selftest onto PATH
+  ansible.builtin.file:
+    src: /usr/local/share/wsl/test-offline.sh
+    dest: /usr/local/bin/wsl-selftest
+    state: link
+    force: true

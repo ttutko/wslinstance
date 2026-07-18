@@ -1,0 +1,9 @@
+---
+# Install the first-run wizard. The zsh startup hook (in the shell role's
+# zshrc) invokes `wsl-firstrun` once per user, guarded by a marker file.
+
+- name: Install wsl-firstrun wizard
+  ansible.builtin.copy:
+    src: "{{ src_root }}/firstrun/wsl-firstrun.sh"
+    dest: /usr/local/bin/wsl-firstrun
+    mode: "0755"

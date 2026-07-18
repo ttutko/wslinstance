@@ -1,0 +1,8 @@
+---
+# Generic installer for pinned release binaries described in vars/versions.yml.
+# Loops the `github_bins` list and delegates each to install_one.yml.
+- name: Install pinned release binaries
+  ansible.builtin.include_tasks: install_one.yml
+  loop: "{{ github_bins }}"
+  loop_control:
+    label: "{{ item.name }} {{ item.version }}"

@@ -1,0 +1,48 @@
+# Starship prompt — default preset for the WSL instance.
+# The first-run wizard can replace this with another preset; the kubernetes
+# module is kept enabled regardless.
+
+add_newline = true
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$kubernetes\
+$python\
+$dotnet\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+truncation_length = 3
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold red"
+
+# Kubernetes context/namespace — ENABLED per requirements.
+[kubernetes]
+disabled = false
+format = 'on [⎈ $context\($namespace\)](bold blue) '
+[kubernetes.context_aliases]
+"dev.local.cluster.k8s" = "dev"
+
+[python]
+symbol = " "
+
+[dotnet]
+symbol = " "
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration](bold yellow) "
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"

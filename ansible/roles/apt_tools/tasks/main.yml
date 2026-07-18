@@ -1,0 +1,29 @@
+---
+# Tools available directly from Debian 12 (bookworm) apt.
+# All resolved at build time; nothing is fetched at runtime.
+
+- name: Install apt-provided tools
+  ansible.builtin.apt:
+    name:
+      - jq
+      - git
+      - tmux
+      - zsh
+      - tcpdump
+      - xsel
+      - ripgrep
+      - fzf
+      - httpie
+      - duf
+      - exa
+      - bpytop
+      - skopeo
+      - unzip
+      - curl
+      - wget
+      - openssh-client
+      - python3-venv
+      - pipx
+    state: present
+    update_cache: true
+    install_recommends: false

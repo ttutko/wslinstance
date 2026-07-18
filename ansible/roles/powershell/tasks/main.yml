@@ -1,0 +1,52 @@
+---
+# PowerShell (pwsh) from the official linux tarball (no MS apt feed needed).
+
+- name: Install pwsh runtime dependencies
+  ansible.builtin.apt:
+    name:
+      - libicu72
+      - libssl3
+      - libunwind8
+    state: present
+    update_cache: true
+
+- name: pwsh work dir
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: -pwsh
+  register: pwsh_work
+
+- name: Download PowerShell {{ powershell_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/PowerShell/PowerShell/releases/download/v{{ powershell_version }}/powershell-{{ powershell_version }}-linux-x64.tar.gz"
+    dest: "{{ pwsh_work.path }}/pwsh.tar.gz"
+    mode: "0644"
+
+- name: Create pwsh install dir
+  ansible.builtin.file:
+    path: /opt/microsoft/powershell/7
+    state: directory
+    mode: "0755"
+
+- name: Extract PowerShell
+  ansible.builtin.unarchive:
+    src: "{{ pwsh_work.path }}/pwsh.tar.gz"
+    dest: /opt/microsoft/powershell/7
+    remote_src: true
+
+- name: Make pwsh executable
+  ansible.builtin.file:
+    path: /opt/microsoft/powershell/7/pwsh
+    mode: "0755"
+
+- name: Symlink pwsh onto PATH
+  ansible.builtin.file:
+    src: /opt/microsoft/powershell/7/pwsh
+    dest: /usr/local/bin/pwsh
+    state: link
+    force: true
+
+- name: Clean pwsh work dir
+  ansible.builtin.file:
+    path: "{{ pwsh_work.path }}"
+    state: absent

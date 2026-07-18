@@ -1,0 +1,43 @@
+Shell & Prompt	zsh	Z shell — the default interactive shell for this instance.	zsh
+Shell & Prompt	starship	Fast, informative cross-shell prompt (kubernetes module enabled).	starship config
+Shell & Prompt	zap	Minimal zsh plugin manager (manages autosuggestions, highlighting, completions).	plug "owner/repo"
+Shell & Prompt	zoxide	Smarter cd that learns your most-used dirs; invoke with z.	z myproject
+Shell & Prompt	fzf	Command-line fuzzy finder; Ctrl-R history, Ctrl-T files.	fzf
+Shell & Prompt	tmux	Terminal multiplexer for persistent sessions and split panes.	tmux new -s work
+Shell & Prompt	exa	Modern ls with icons/colors; aliased to ls here.	exa -l --icons
+Shell & Prompt	duf	Friendly, colorful disk-usage/df viewer.	duf
+Shell & Prompt	bpytop	Resource monitor for CPU, memory, disk, network, processes.	bpytop
+Shell & Prompt	xsel	Read/write the X selection/clipboard from the command line.	echo hi | xsel -b
+Editors & Files	nvim	Neovim — plain (vanilla) configuration.	nvim file.txt
+Editors & Files	vim	Neovim with the LazyVim IDE config (also available as lvim).	vim project/
+Editors & Files	yazi	Blazing-fast terminal file manager with previews.	yazi
+Git	git	The distributed version control system.	git status
+Git	lazygit	Full-featured terminal UI for git.	lazygit
+Git	glab	GitLab CLI — manage MRs, issues, pipelines from the terminal.	glab mr list
+Kubernetes	kubectl	The Kubernetes CLI (aliased to kubecolor for color; also k).	kubectl get pods
+Kubernetes	kubecolor	Colorizes kubectl output; drop-in replacement for kubectl.	kubecolor get pods
+Kubernetes	kubectx	Switch between kubeconfig contexts quickly.	kubectx my-cluster
+Kubernetes	kubens	Switch between namespaces quickly.	kubens kube-system
+Kubernetes	kubie	Context/namespace switching with isolated subshells.	kubie ctx
+Kubernetes	k9s	Terminal UI to observe and manage clusters in real time.	k9s
+Kubernetes	stern	Multi-pod, multi-container log tailing with color.	stern my-app
+Kubernetes	helm	The Kubernetes package manager (charts).	helm list -A
+Kubernetes	popeye	Scans clusters for misconfigurations and issues.	popeye
+Kubernetes	resource-capacity	Show cluster resource requests/limits/utilization (kubectl plugin).	kubectl resource-capacity
+Kubernetes	kubectl-neat	Clean up kubectl get -o yaml/json output for readability.	kubectl get pod x -o yaml | kubectl neat
+Containers & Registries	skopeo	Inspect/copy container images between registries without a daemon.	skopeo inspect docker://alpine
+Containers & Registries	oras	Push/pull OCI artifacts to/from registries.	oras pull registry/artifact:tag
+Containers & Registries	dive	Explore image layers and find wasted space.	dive my-image:tag
+Dev SDKs	dotnet	.NET SDK (8 LTS + 10 LTS) — build/run/test .NET projects.	dotnet --list-sdks
+Dev SDKs	pwsh	PowerShell — cross-platform shell and scripting.	pwsh
+Python	pipx	Install and run Python CLI apps in isolated envs.	pipx install black
+Python	poetry	Python dependency management and packaging.	poetry init
+Python	pipenv	Python virtualenv + dependency workflow.	pipenv install requests
+Networking	http	HTTPie — human-friendly HTTP client.	http GET example.com
+Networking	tcpdump	Capture and inspect network packets.	tcpdump -i any -c 5
+Search & Data	rg	ripgrep — extremely fast recursive code/text search.	rg TODO
+Search & Data	jq	Command-line JSON processor and query tool.	jq . file.json
+Secrets	bw	Bitwarden CLI — manage your vault from the terminal.	bw list items
+Docs & Help	tldr	Simplified, example-driven command help (works offline).	tldr tar
+Docs & Help	chtsh	cht.sh cheat-sheet client (needs a reachable cht.sh server).	chtsh curl
+Docs & Help	wsltools	This overview of every preinstalled tool.	wsltools
