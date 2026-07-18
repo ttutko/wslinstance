@@ -8,3 +8,7 @@ bundle/*
 
 # Claude Code harness runtime state
 .claude/scheduled_tasks.lock
+
+# Python bytecode
+__pycache__/
+*.pyc
