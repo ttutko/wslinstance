@@ -10,6 +10,31 @@
     version: release-v1
     depth: 1
 
+# --- tmux: TPM + plugins + Powerline themepack, vendored so it works offline
+- name: Clone tmux plugin manager (TPM)
+  ansible.builtin.git:
+    repo: "{{ tmux_plugins.tpm.repo }}"
+    dest: /root/.tmux/plugins/tpm
+    version: "{{ tmux_plugins.tpm.version }}"
+
+- name: Clone tmux-resurrect plugin
+  ansible.builtin.git:
+    repo: "{{ tmux_plugins.tmux_resurrect.repo }}"
+    dest: /root/.tmux/plugins/tmux-resurrect
+    version: "{{ tmux_plugins.tmux_resurrect.version }}"
+
+- name: Clone tmux-yank plugin
+  ansible.builtin.git:
+    repo: "{{ tmux_plugins.tmux_yank.repo }}"
+    dest: /root/.tmux/plugins/tmux-yank
+    version: "{{ tmux_plugins.tmux_yank.version }}"
+
+- name: Clone tmux-themepack
+  ansible.builtin.git:
+    repo: "{{ tmux_plugins.tmux_themepack.repo }}"
+    dest: /root/.tmux-themepack
+    version: "{{ tmux_plugins.tmux_themepack.version }}"
+
 # --- deploy config to root + skel -------------------------------------------
 - name: Ensure config dirs exist
   ansible.builtin.file:
@@ -48,6 +73,15 @@
     - /root
     - /etc/skel
 
+- name: Install tmux config
+  ansible.builtin.copy:
+    src: "{{ src_root }}/config/tmux.conf"
+    dest: "{{ item }}/.tmux.conf"
+    mode: "0644"
+  loop:
+    - /root
+    - /etc/skel
+
 # --- default shell ----------------------------------------------------------
 - name: Set zsh as root's login shell
   ansible.builtin.user:
@@ -65,3 +99,13 @@
   ansible.builtin.command: cp -a /root/.local/share/zap /etc/skel/.local/share/zap
   args:
     creates: /etc/skel/.local/share/zap
+
+- name: Copy vendored tmux plugins into /etc/skel for future users
+  ansible.builtin.command: cp -a /root/.tmux /etc/skel/.tmux
+  args:
+    creates: /etc/skel/.tmux
+
+- name: Copy vendored tmux-themepack into /etc/skel for future users
+  ansible.builtin.command: cp -a /root/.tmux-themepack /etc/skel/.tmux-themepack
+  args:
+    creates: /etc/skel/.tmux-themepack

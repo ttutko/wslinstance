@@ -30,6 +30,22 @@ dotnet_channels:
 powershell_version: "7.4.6"
 tealdeer_version: "1.8.1"   # tldr client; older pins have stale pages-archive URLs
 
+# tmux plugins (vendored via git at build time so ~/.tmux.conf works offline).
+# Pinned to commit hashes, not tags, to match what's on the reference machine.
+tmux_plugins:
+  tpm:
+    repo: https://github.com/tmux-plugins/tpm
+    version: "06d41226af02ca4f5bcf58169dd4f0a2aa42218c"
+  tmux_resurrect:
+    repo: https://github.com/tmux-plugins/tmux-resurrect
+    version: "327c0481ad20c429b4e692e092659f8b3346b08f"
+  tmux_yank:
+    repo: https://github.com/tmux-plugins/tmux-yank
+    version: "648005db64d9bf3c4650eff694ecb6cf3e42b0c8"
+  tmux_themepack:
+    repo: https://github.com/jimeh/tmux-themepack.git
+    version: "7c59902f64dcd7ea356e891274b21144d1ea5948"
+
 # ---- Single-binary / archive downloads handled by roles/github_bins ----
 github_bins:
 
