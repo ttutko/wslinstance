@@ -10,6 +10,8 @@ Shell & Prompt	bpytop	Resource monitor for CPU, memory, disk, network, processes
 Shell & Prompt	xsel	Read/write the X selection/clipboard from the command line.	echo hi | xsel -b
 Editors & Files	nvim	Neovim — plain (vanilla) configuration.	nvim file.txt
 Editors & Files	vim	Neovim with the LazyVim IDE config (also available as lvim).	vim project/
+Editors & Files	csharp	LazyVim C# support: OmniSharp LSP (completion + formatting), netcoredbg debugger, c_sharp syntax.	vim Program.cs
+Editors & Files	lazyvim-langs	LazyVim LSP + autocompletion baked for Python, TS/JS, HTML/CSS, JSON, YAML, Bash, Docker, Lua, C#.	vim app.py
 Editors & Files	yazi	Blazing-fast terminal file manager with previews.	yazi
 Git	git	The distributed version control system.	git status
 Git	lazygit	Full-featured terminal UI for git.	lazygit
@@ -30,12 +32,16 @@ Containers & Registries	oras	Push/pull OCI artifacts to/from registries.	oras pu
 Containers & Registries	dive	Explore image layers and find wasted space.	dive my-image:tag
 Dev SDKs	dotnet	.NET SDK (8 LTS + 10 LTS) — build/run/test .NET projects.	dotnet --list-sdks
 Dev SDKs	pwsh	PowerShell — cross-platform shell and scripting.	pwsh
+Dev SDKs	node	Node.js LTS runtime (also runs the editor's JS/TS/JSON/YAML language servers).	node -v
+Dev SDKs	npm	Node package manager (bundled with node).	npm -v
+Dev SDKs	gcc	GNU C/C++ compiler toolchain (build-essential).	gcc --version
 Python	pipx	Install and run Python CLI apps in isolated envs.	pipx install black
 Python	poetry	Python dependency management and packaging.	poetry init
 Python	pipenv	Python virtualenv + dependency workflow.	pipenv install requests
 Networking	http	HTTPie — human-friendly HTTP client.	http GET example.com
 Networking	tcpdump	Capture and inspect network packets.	tcpdump -i any -c 5
 Search & Data	rg	ripgrep — extremely fast recursive code/text search.	rg TODO
+Search & Data	fd	Fast, user-friendly file finder (Debian's fdfind, aliased to fd).	fd '\.lua$'
 Search & Data	jq	Command-line JSON processor and query tool.	jq . file.json
 Secrets	bw	Bitwarden CLI — manage your vault from the terminal.	bw list items
 Docs & Help	tldr	Simplified, example-driven command help (works offline).	tldr tar

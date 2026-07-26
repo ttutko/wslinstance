@@ -8,10 +8,15 @@
       - jq
       - git
       - tmux
+      # C/C++ toolchain — kept in the image for a real dev environment and so
+      # nvim-treesitter can compile parsers at runtime (clears the checkhealth
+      # "no C compiler" error). Pulls gcc/g++/make/libc6-dev.
+      - build-essential
       - zsh
       - tcpdump
       - xsel
       - ripgrep
+      - fd-find
       - fzf
       - httpie
       - duf
@@ -27,3 +32,12 @@
     state: present
     update_cache: true
     install_recommends: false
+
+# Debian ships fd as `fdfind`; expose it as `fd` too (what users, and the
+# editor's file picker, expect).
+- name: Symlink fdfind -> fd
+  ansible.builtin.file:
+    src: /usr/bin/fdfind
+    dest: /usr/local/bin/fd
+    state: link
+    force: true

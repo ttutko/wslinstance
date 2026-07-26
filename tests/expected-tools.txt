@@ -4,6 +4,9 @@
 
 # --- core / shell ---
 jq	jq --version
+gcc	gcc --version
+node	node --version
+npm	npm --version
 zsh	zsh --version
 starship	starship --version
 zoxide	zoxide --version
@@ -18,13 +21,29 @@ xsel	test -x "$(command -v xsel)"
 zap	test -f "$HOME/.local/share/zap/zap.zsh"
 tcpdump	tcpdump --version
 rg	rg --version
+fd	fd --version
 
 # --- editors / files ---
 nvim	nvim --version
 lazyvim-load	vim --headless +qa
 lazyvim-plugins	test -d "$HOME/.local/share/lvim/lazy/LazyVim"
 treesitter-parsers	find "$HOME/.local/share/lvim" -path '*parser*' -name '*.so' | grep -q .
+ts-c_sharp	find "$HOME/.local/share/lvim" -path '*parser*' -name 'c_sharp.so' | grep -q .
 mason-lsps	ls "$HOME/.local/share/lvim/mason/bin" 2>/dev/null | grep -q .
+omnisharp	test -d "$HOME/.local/share/lvim/mason/packages/omnisharp"
+netcoredbg	test -d "$HOME/.local/share/lvim/mason/packages/netcoredbg"
+lsp-pyright	test -d "$HOME/.local/share/lvim/mason/packages/pyright"
+lsp-ruff	test -d "$HOME/.local/share/lvim/mason/packages/ruff"
+lsp-debugpy	test -d "$HOME/.local/share/lvim/mason/packages/debugpy"
+lsp-typescript	test -d "$HOME/.local/share/lvim/mason/packages/typescript-language-server"
+lsp-html	test -d "$HOME/.local/share/lvim/mason/packages/html-lsp"
+lsp-css	test -d "$HOME/.local/share/lvim/mason/packages/css-lsp"
+lsp-json	test -d "$HOME/.local/share/lvim/mason/packages/json-lsp"
+lsp-yaml	test -d "$HOME/.local/share/lvim/mason/packages/yaml-language-server"
+lsp-prettier	test -d "$HOME/.local/share/lvim/mason/packages/prettier"
+lsp-bash	test -d "$HOME/.local/share/lvim/mason/packages/bash-language-server"
+lsp-dockerfile	test -d "$HOME/.local/share/lvim/mason/packages/dockerfile-language-server"
+lsp-docker-compose	test -d "$HOME/.local/share/lvim/mason/packages/docker-compose-language-service"
 yazi	yazi --version
 
 # --- git ---

@@ -27,10 +27,12 @@ end
 log("plugin sync done")
 
 -- 2) Mason tools -----------------------------------------------------------
--- NB: only self-contained prebuilt binaries (no Node/Python runtime needed).
--- tree-sitter CLI is intentionally NOT installed here — Mason's is linked
--- against glibc 2.39 and won't run on Debian 12; the neovim role installs a
--- glibc-compatible one to /usr/local/bin instead.
+-- NB: tools here install as prebuilt binaries or via the Node/Python runtimes
+-- baked into the image (see langs.lua). csharpier is intentionally excluded — its
+-- Mason `dotnet tool` installer hangs in headless priming; OmniSharp formats C#
+-- instead. tree-sitter CLI is intentionally NOT installed here — Mason's is
+-- linked against glibc 2.39 and won't run on Debian 12; the neovim role installs
+-- a glibc-compatible one to /usr/local/bin instead.
 log("installing mason tools...")
 load({ "mason.nvim", "mason-lspconfig.nvim" })
 local ok_reg, registry = pcall(require, "mason-registry")
@@ -40,6 +42,15 @@ if ok_reg then
     "lua-language-server", "stylua",
     "shfmt", "shellcheck",
     "taplo", "marksman",
+    "omnisharp", "netcoredbg",
+    -- Python
+    "pyright", "ruff", "debugpy",
+    -- Web / config (node-based)
+    "typescript-language-server", "html-lsp", "css-lsp",
+    "json-lsp", "yaml-language-server", "prettier",
+    -- DevOps (node-based)
+    "bash-language-server",
+    "dockerfile-language-server", "docker-compose-language-service",
   }
   local remaining = 0
   for _, name in ipairs(tools) do

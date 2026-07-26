@@ -23,6 +23,8 @@ if ok_ts and type(ts.install) == "function" then
     "bash", "python", "json",
     "yaml", "markdown", "markdown_inline", "toml",
     "regex", "diff", "gitcommit", "dockerfile",
+    "c_sharp",
+    "javascript", "typescript", "tsx", "html", "css",
   }
   local ok, err = pcall(function()
     local task = ts.install(langs)          -- async Task

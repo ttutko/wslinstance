@@ -39,7 +39,9 @@ nerdctl run --rm --network none debian-wsl-airgap /usr/local/bin/wsl-selftest
 | shell/prompt/aliases | `config/zshrc`, `config/aliases.zsh`, `config/starship.toml` | Deployed to `/root` + `/etc/skel`. |
 | LazyVim config | `config/nvim/**` | `nvim`=vanilla; `vim`/`lvim`=LazyVim (NVIM_APPNAME=lvim). |
 | treesitter parsers | `config/nvim/lua/plugins/treesitter.lua` **and** `ansible/roles/neovim/files/prime-ts.lua` (`langs`) | Both lists must match; parsers compile at build. |
-| Mason LSPs/formatters | `config/nvim/lua/plugins/mason.lua` **and** `ansible/roles/neovim/files/prime.lua` (`tools`) | Prebuilt-binary tools only (see gotcha). |
+| Mason LSPs/formatters | `config/nvim/lua/plugins/mason.lua` **and** `ansible/roles/neovim/files/prime.lua` (`tools`) | Node/pip/dotnet-runtime servers now OK (runtimes are baked — see below). |
+| LazyVim language wiring (LSP servers, formatters, dap) | `config/nvim/lua/plugins/csharp.lua` (C#), `langs.lua` (Python/Web/DevOps) | Hand-rolled: registers servers in `nvim-lspconfig` `opts.servers`, conform formatters, dap. Still must add each tool to `mason.lua`+`prime.lua` and parsers to `treesitter.lua`+`prime-ts.lua`. |
+| Node.js runtime | `ansible/roles/nodejs/` (version in `versions.yml` → `node_version`) | Permanent; runs npm-based LSP servers. Role is ordered BEFORE `neovim` so Mason can `npm install` them during priming. |
 | first-run wizard | `firstrun/wsl-firstrun.sh` | Prompts: starship preset / plugin toggles / keybinds. |
 | docs (man + `wsltools`) | `docs/tools.tsv` (single source) | Add a row; man page is generated from it. |
 | self-test | `tests/expected-tools.txt` | Add a `label <TAB> cmd` line for any new tool. |
@@ -68,18 +70,40 @@ Verify every pinned URL at once (HEAD checks) before a long build:
 
 - **nvim ≥ 0.11.2 required by LazyVim.** Too-old nvim → LazyVim prints "Press any key to
   exit" which **deadlocks headless priming forever**. Pinned nvim `0.11.7`.
-- **tree-sitter CLI glibc.** nvim-treesitter `main` branch compiles parsers via the
-  `tree-sitter` CLI. Mason's prebuilt CLI needs **glibc 2.39**; Debian 12 has **2.36**.
-  We install a glibc-compatible CLI (`0.25.6`/`0.25.10` work; **0.25.0 does not**) to
-  `/usr/local/bin` in the neovim role, and set Mason `PATH="append"` so it wins.
+- **tree-sitter CLI glibc — BUILT FROM SOURCE.** nvim-treesitter `main` branch compiles
+  parsers via the `tree-sitter` CLI, which must run on Debian 12 (**glibc 2.36**). No prebuilt
+  binary works: Mason's needs glibc 2.39, and **every** tree-sitter `0.26.x` GitHub release is
+  built on ubuntu-24.04 → also needs glibc 2.39 (no musl/static asset). So the neovim role
+  **compiles the crate from source** (throwaway `rustup` toolchain → `cargo install
+  tree-sitter-cli --version {{ treesitter_cli_version }} --root /usr/local`, toolchain removed
+  after) against the build container's own glibc 2.36. Currently pinned **`0.26.11`**. Mason is
+  `PATH="append"` so this `/usr/local` CLI wins. `dev/prime-test.sh` builds it the same way and
+  is the compat gate. (Prebuilt `0.25.x` still runs on 2.36 if you ever revert to a download.)
 - **Two priming passes.** `prime.lua` (plugins+Mason) and `prime-ts.lua` (treesitter) run as
   **separate** `nvim --headless` invocations. Doing treesitter in the same session as Mason
   leaves the parser registry uninitialised (`config.list is nil`). Both wrapped in `timeout`.
   `install()` returns an async Task that must be captured and `:wait()`-ed.
-- **Mason offline set = prebuilt binaries only** (lua-language-server, stylua, shfmt,
-  shellcheck, taplo, marksman). npm/pip-based servers (pyright, bash/yaml/json LSP) need a
-  Node/Python **runtime** to execute — not installed — so they'd fail offline. To add them,
-  install the runtime in the image first.
+- **Mason offline set — runtimes are now baked.** Node.js (`roles/nodejs`) and Python
+  (`python3-venv`) are in the image, so npm/pip-based servers work offline now: pyright, ruff,
+  debugpy, typescript-language-server, html/css/json-lsp, yaml-language-server, prettier,
+  bash-language-server, dockerfile/docker-compose LSP are all baked (see `langs.lua`). The old
+  "prebuilt-binaries-only" rule is superseded — but a new server still only works offline if
+  the runtime it needs (node / python / .NET) is present. Anything needing Go/Ruby/etc. would
+  need that runtime added first. Every baked server must be in `prime.lua` (bake) **and**
+  registered in `opts.servers` (start) — installing without registering means no completion.
+- **C# (`config/nvim/lua/plugins/csharp.lua`).** C#-only (F# half of LazyVim's `lang.dotnet`
+  extra deliberately dropped). Mason tools: `omnisharp`, `netcoredbg` — both prebuilt-binary
+  downloads that install without dotnet. **`csharpier` is deliberately NOT used:** its Mason
+  installer is a `dotnet tool` that **hangs indefinitely in headless priming** (raw
+  `dotnet tool install csharpier` works fine, but Mason's path does not) — so it broke the
+  build gate. OmniSharp formats C# via the LSP, so nothing is lost. If you ever want csharpier,
+  install it directly in the neovim role (`dotnet tool install --tool-path … csharpier`), not
+  via Mason. **Caveat to verify:** Mason's `omnisharp` may ship the `net6.0` build; the image
+  has .NET 8/10, so omnisharp may need `DOTNET_ROLL_FORWARD=Major` to launch — confirm by
+  opening a `.cs` file in a real instance.
+- **tree-sitter CLI source build must pass `--no-modify-path` to rustup.** Otherwise rustup
+  appends `. "/tmp/cargo/env"` to `/root/.bashrc` + `.profile`; we delete `/tmp/cargo`, leaving
+  every login shell erroring `No such file`. (Both the neovim role and `dev/prime-test.sh`.)
 - **Dockerfile slim step must NOT `apt-get autoremove`** — it cascades through Python and
   removes httpie/bpytop. And **preserve `/root/.cache/tealdeer`** (the offline tldr cache);
   only clear `/root/.cache/pip`.

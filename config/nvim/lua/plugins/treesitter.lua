@@ -13,6 +13,8 @@ return {
         "bash", "python", "json",
         "yaml", "markdown", "markdown_inline", "toml",
         "regex", "diff", "gitcommit", "dockerfile",
+        "c_sharp",
+        "javascript", "typescript", "tsx", "html", "css",
       },
     },
   },

@@ -1,0 +1,40 @@
+---
+# Node.js runtime from the official tarball (apt's is old; LSP servers want a
+# recent LTS). Node is a PERMANENT part of the image: the npm-based language
+# servers baked for offline autocompletion (bash/json/yaml/html/css/typescript/
+# docker/pyright) need it at runtime. Must run BEFORE the neovim role so Mason
+# can `npm install` those servers during offline priming.
+
+- name: node work dir
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: -node
+  register: node_work
+
+- name: Download Node.js {{ node_version }}
+  ansible.builtin.get_url:
+    url: "https://nodejs.org/dist/v{{ node_version }}/node-v{{ node_version }}-linux-x64.tar.gz"
+    dest: "{{ node_work.path }}/node.tar.gz"
+    mode: "0644"
+
+- name: Extract Node.js into /opt
+  ansible.builtin.unarchive:
+    src: "{{ node_work.path }}/node.tar.gz"
+    dest: /opt
+    remote_src: true
+
+- name: Symlink node/npm/npx onto PATH
+  ansible.builtin.file:
+    src: "/opt/node-v{{ node_version }}-linux-x64/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    state: link
+    force: true
+  loop:
+    - node
+    - npm
+    - npx
+
+- name: Clean node work dir
+  ansible.builtin.file:
+    path: "{{ node_work.path }}"
+    state: absent

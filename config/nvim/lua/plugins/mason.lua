@@ -21,6 +21,23 @@ return {
         "shellcheck",          -- shell linter   (prebuilt)
         "taplo",               -- TOML LSP/fmt   (prebuilt)
         "marksman",            -- Markdown LSP   (prebuilt, self-contained)
+        "omnisharp",           -- C# LSP         (self-contained release)
+        "netcoredbg",          -- C# debugger    (prebuilt binary)
+        -- Python (needs Node for pyright; Python for debugpy)
+        "pyright",             -- Python LSP     (node)
+        "ruff",                -- Python lint/fmt(prebuilt binary)
+        "debugpy",             -- Python debugger(pip/venv)
+        -- Web / config (all node-based)
+        "typescript-language-server",  -- TS/JS LSP
+        "html-lsp",            -- HTML LSP       (node)
+        "css-lsp",             -- CSS LSP        (node)
+        "json-lsp",            -- JSON LSP       (node)
+        "yaml-language-server",-- YAML LSP       (node)
+        "prettier",            -- web formatter  (node)
+        -- DevOps
+        "bash-language-server",-- Bash LSP       (node)
+        "dockerfile-language-server",       -- Dockerfile LSP (node)
+        "docker-compose-language-service",  -- compose LSP    (node)
       },
     },
   },
