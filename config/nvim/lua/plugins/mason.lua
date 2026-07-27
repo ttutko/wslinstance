@@ -1,15 +1,17 @@
 -- Mason-managed LSP servers / formatters. Same offline rule as treesitter:
 -- everything listed here is installed at build time and baked in.
 --
--- IMPORTANT (offline): only tools Mason ships as SELF-CONTAINED prebuilt
--- binaries are listed. npm-based servers (bash-language-server, json-lsp,
--- yaml-language-server, pyright, ...) require a Node.js runtime to *execute*,
--- and Node is not installed in this image — so they would not work offline.
--- To add them: install nodejs in the image (see ansible/roles/apt_tools), add
--- the server here, and rebuild so it is re-primed.
+-- OFFLINE: a tool works offline only if the runtime it needs is in the
+-- image. Prebuilt binaries always work; npm-based servers (bash-language-server,
+-- json-lsp, yaml-language-server, pyright, ...) work because the `nodejs` role
+-- bakes Node.js; pip-based ones (debugpy) work via the image's Python. To add a
+-- server: list it here AND in ansible/roles/neovim/files/prime.lua (bake) AND
+-- register it in opts.servers (langs.lua/csharp.lua) so it starts, then rebuild.
+-- Anything needing a runtime not in the image (Go, Ruby, ...) needs that added
+-- first.
 return {
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = {
       -- Append Mason's bin to PATH (don't prepend) so the system tree-sitter
       -- in /usr/local/bin (glibc-compatible) wins over Mason's glibc-2.39 one.
