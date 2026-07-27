@@ -64,13 +64,13 @@ ansible-playbook -i 'localhost,' -c local ansible/playbook.yml
 The full list lives in [`included_software.txt`](included_software.txt) and is
 rendered in-instance by `wsltools` / `man wsltools`. Highlights:
 
-- **Shell:** zsh (default) + zap plugins, starship (k8s module on), zoxide, fzf, tmux, exa, duf, bpytop
-- **Editors:** Neovim (`nvim` vanilla; `vim`/`lvim` = LazyVim, primed for offline)
+- **Shell:** zsh (default) + zap plugins, starship (k8s module on), zoxide, fzf, tmux (system-clipboard yank), exa, duf, bpytop
+- **Editors:** Neovim (`nvim` vanilla; `vim`/`lvim` = LazyVim, primed for offline) with LSP autocompletion (Tab to accept) for Python, TS/JS, HTML/CSS, JSON, YAML, Bash, Docker, Lua, C#
 - **Kubernetes:** kubectl, kubecolor, kubectx/kubens, kubie, k9s, stern, helm, popeye, resource-capacity, kubectl-neat
 - **Containers:** skopeo, oras, dive
 - **Git:** git, lazygit, glab
-- **Dev:** .NET SDK 8 + 10, PowerShell, pipx/poetry/pipenv
-- **Misc:** ripgrep, jq, httpie, tcpdump, bitwarden CLI, yazi, tldr (offline cache), cht.sh
+- **Dev:** .NET SDK 8 + 10, Node.js 22, PowerShell, gcc/build-essential, pipx/poetry/pipenv
+- **Misc:** ripgrep, fd, jq, httpie, tcpdump, bitwarden CLI, yazi, tldr (offline cache), cht.sh
 
 ## Customizing
 
@@ -79,7 +79,8 @@ rendered in-instance by `wsltools` / `man wsltools`. Highlights:
 - **Add an apt package:** append to `ansible/roles/apt_tools/tasks/main.yml`.
 - **Change shell/prompt/aliases:** edit files in [`config/`](config/).
 - **Tune LazyVim:** edit [`config/nvim/`](config/nvim/); add treesitter parsers
-  in `lua/plugins/treesitter.lua` and LSPs in `lua/plugins/mason.lua`, then
+  in `lua/plugins/treesitter.lua` and LSP servers in `lua/plugins/mason.lua`
+  (then register them in `opts.servers`, see `lua/plugins/langs.lua`), then
   rebuild so they're re-primed for offline use.
 - **Add a tool to the docs/tests:** add a row to
   [`docs/tools.tsv`](docs/tools.tsv) and a line to

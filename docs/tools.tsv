@@ -3,7 +3,7 @@ Shell & Prompt	starship	Fast, informative cross-shell prompt (kubernetes module 
 Shell & Prompt	zap	Minimal zsh plugin manager (manages autosuggestions, highlighting, completions).	plug "owner/repo"
 Shell & Prompt	zoxide	Smarter cd that learns your most-used dirs; invoke with z.	z myproject
 Shell & Prompt	fzf	Command-line fuzzy finder; Ctrl-R history, Ctrl-T files.	fzf
-Shell & Prompt	tmux	Terminal multiplexer for persistent sessions and split panes.	tmux new -s work
+Shell & Prompt	tmux	Terminal multiplexer for persistent sessions and split panes; yanks to the system clipboard (OSC 52).	tmux new -s work
 Shell & Prompt	exa	Modern ls with icons/colors; aliased to ls here.	exa -l --icons
 Shell & Prompt	duf	Friendly, colorful disk-usage/df viewer.	duf
 Shell & Prompt	bpytop	Resource monitor for CPU, memory, disk, network, processes.	bpytop
@@ -11,7 +11,7 @@ Shell & Prompt	xsel	Read/write the X selection/clipboard from the command line.	
 Editors & Files	nvim	Neovim — plain (vanilla) configuration.	nvim file.txt
 Editors & Files	vim	Neovim with the LazyVim IDE config (also available as lvim).	vim project/
 Editors & Files	csharp	LazyVim C# support: OmniSharp LSP (completion + formatting), netcoredbg debugger, c_sharp syntax.	vim Program.cs
-Editors & Files	lazyvim-langs	LazyVim LSP + autocompletion baked for Python, TS/JS, HTML/CSS, JSON, YAML, Bash, Docker, Lua, C#.	vim app.py
+Editors & Files	lazyvim-langs	LazyVim LSP + autocompletion (Tab to accept) baked for Python, TS/JS, HTML/CSS, JSON, YAML, Bash, Docker, Lua, C#.	vim app.py
 Editors & Files	yazi	Blazing-fast terminal file manager with previews.	yazi
 Git	git	The distributed version control system.	git status
 Git	lazygit	Full-featured terminal UI for git.	lazygit
