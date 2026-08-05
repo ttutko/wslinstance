@@ -12,7 +12,7 @@ dive
 bpytop
 chtsh
 duf
-exa, this should be aliased to replace the default 'ls' with the arguments "--group-directories-first -a -l --icons"
+eza, this should be aliased to replace the default 'ls' with the arguments "--group-directories-first -a -l --icons"
 fzf
 git
 httpie

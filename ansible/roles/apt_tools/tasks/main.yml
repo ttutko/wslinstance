@@ -1,5 +1,5 @@
 ---
-# Tools available directly from Debian 12 (bookworm) apt.
+# Tools available directly from Debian 13 (trixie) apt.
 # All resolved at build time; nothing is fetched at runtime.
 
 - name: Install apt-provided tools
@@ -20,7 +20,7 @@
       - fzf
       - httpie
       - duf
-      - exa
+      - eza
       - bpytop
       - skopeo
       - unzip

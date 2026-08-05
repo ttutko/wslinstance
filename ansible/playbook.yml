@@ -1,5 +1,5 @@
 ---
-# Provisions the Debian 12 rootfs for the airgapped WSL instance.
+# Provisions the Debian 13 rootfs for the airgapped WSL instance.
 # Run inside the Docker build (or against a running container) as:
 #   ansible-playbook -i 'localhost,' -c local ansible/playbook.yml
 - name: Build airgapped WSL instance

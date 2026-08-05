@@ -4,7 +4,7 @@ Shell & Prompt	zap	Minimal zsh plugin manager (manages autosuggestions, highligh
 Shell & Prompt	zoxide	Smarter cd that learns your most-used dirs; invoke with z.	z myproject
 Shell & Prompt	fzf	Command-line fuzzy finder; Ctrl-R history, Ctrl-T files.	fzf
 Shell & Prompt	tmux	Terminal multiplexer for persistent sessions and split panes; yanks to the system clipboard (OSC 52).	tmux new -s work
-Shell & Prompt	exa	Modern ls with icons/colors; aliased to ls here.	exa -l --icons
+Shell & Prompt	eza	Modern ls with icons/colors (exa's maintained successor); aliased to ls here.	eza -l --icons
 Shell & Prompt	duf	Friendly, colorful disk-usage/df viewer.	duf
 Shell & Prompt	bpytop	Resource monitor for CPU, memory, disk, network, processes.	bpytop
 Shell & Prompt	xsel	Read/write the X selection/clipboard from the command line.	echo hi | xsel -b

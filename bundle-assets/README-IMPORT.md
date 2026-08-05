@@ -1,4 +1,4 @@
-# Airgapped Debian 12 WSL instance — Import Guide
+# Airgapped Debian 13 WSL instance — Import Guide
 
 This bundle contains a self-contained WSL2 distribution. Everything is baked in;
 **no network is required** on this machine.
@@ -54,7 +54,7 @@ wsl-selftest      # runs every tool with no network and reports PASS/FAIL
 
 ## Notes / limitations
 
-- **Icons** (in `exa`, starship, yazi) need a **Nerd Font** selected in your
+- **Icons** (in `eza`, starship, yazi) need a **Nerd Font** selected in your
   Windows terminal — that's a client-side setting, not part of the image.
 - **cht.sh / chtsh** queries a remote server, so it does **not** return content
   on a fully airgapped host. Use `tldr` for offline cheatsheets. If you need

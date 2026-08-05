@@ -1,6 +1,6 @@
-# wslinstance — Airgapped Debian 12 WSL builder
+# wslinstance — Airgapped Debian 13 WSL builder
 
-Builds a **fully self-contained WSL2 distribution** (Debian 12) preloaded with a
+Builds a **fully self-contained WSL2 distribution** (Debian 13) preloaded with a
 curated toolset, ready to `wsl --import` onto an **airgapped machine**. All
 downloads happen once, at build time, on a network-connected machine; the
 resulting image needs no network.
@@ -40,7 +40,7 @@ Provisioning is **Ansible**, run inside the Docker build. The same playbook can
 be applied to a running container after the fact:
 
 ```bash
-docker run -d --name wsl-build debian:12-slim sleep infinity
+docker run -d --name wsl-build debian:13-slim sleep infinity
 # (install ansible in it, copy this repo to /provision, then:)
 ansible-playbook -i 'localhost,' -c local ansible/playbook.yml
 ```
@@ -50,7 +50,7 @@ ansible-playbook -i 'localhost,' -c local ansible/playbook.yml
 | Path | What |
 |------|------|
 | [`build.sh`](build.sh) | Single entrypoint: build → test → export → bundle. |
-| [`Dockerfile`](Dockerfile) | Debian 12 base; installs Ansible; runs the playbook. |
+| [`Dockerfile`](Dockerfile) | Debian 13 base; installs Ansible; runs the playbook. |
 | [`ansible/vars/versions.yml`](ansible/vars/versions.yml) | **Pinned versions** for every non-apt tool. Bump here. |
 | [`ansible/roles/`](ansible/roles/) | One role per concern (apt, kube, neovim, dotnet, shell, …). |
 | [`config/`](config/) | Editable source config: zshrc, starship.toml, aliases, LazyVim. |
@@ -64,7 +64,7 @@ ansible-playbook -i 'localhost,' -c local ansible/playbook.yml
 The full list lives in [`included_software.txt`](included_software.txt) and is
 rendered in-instance by `wsltools` / `man wsltools`. Highlights:
 
-- **Shell:** zsh (default) + zap plugins, starship (k8s module on), zoxide, fzf, tmux (system-clipboard yank), exa, duf, bpytop
+- **Shell:** zsh (default) + zap plugins, starship (k8s module on), zoxide, fzf, tmux (system-clipboard yank), eza, duf, bpytop
 - **Editors:** Neovim (`nvim` vanilla; `vim`/`lvim` = LazyVim, primed for offline) with LSP autocompletion (Tab to accept) for Python, TS/JS, HTML/CSS, JSON, YAML, Bash, Docker, Lua, C#
 - **Kubernetes:** kubectl, kubecolor, kubectx/kubens, kubie, k9s, stern, helm, popeye, resource-capacity, kubectl-neat
 - **Containers:** skopeo, oras, dive
@@ -92,7 +92,7 @@ rendered in-instance by `wsltools` / `man wsltools`. Highlights:
   `adduser` and set `[user] default=` in `/etc/wsl.conf` if desired.
 - **cht.sh** needs a reachable server; on a true airgap use `tldr` (bundled
   offline) as the cheatsheet source. See the import README.
-- **Nerd Font** required (Windows-side) for icons in exa/starship/yazi.
+- **Nerd Font** required (Windows-side) for icons in eza/starship/yazi.
 - Image is large (~3–5 GB) — two .NET SDKs + LSP servers dominate.
 - Versions in `versions.yml` are pins as of authoring; if a release URL 404s at
   build time, bump that tool's version (the build fails loudly, never silently).

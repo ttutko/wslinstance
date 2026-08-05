@@ -53,39 +53,29 @@
     - /root
     - /etc/skel
 
-# --- 4. Offline priming (needs network + a compiler; both removed after) ----
+# --- 4. Offline priming (needs network + gcc for parser compilation) --------
 # gcc/g++/make/libc6-dev come from apt_tools (build-essential) and STAY in the
-# image. Only clang + libclang are build-time-only (needed to compile the
-# tree-sitter CLI from source: its rquickjs-sys dep runs bindgen, which needs
-# libclang); they are removed after priming below.
-- name: Install clang toolchain for building the tree-sitter CLI (removed later)
-  ansible.builtin.apt:
-    name:
-      - clang
-      - libclang-dev
-    state: present
-    update_cache: true
+# image; prime-ts.lua compiles the treesitter parsers with them. On Debian 13 no
+# other build-time toolchain is needed.
 
-# nvim-treesitter (main branch) compiles parsers with the tree-sitter CLI, which
-# must run on Debian 12 (glibc 2.36). NO prebuilt CLI works: Mason's needs glibc
-# 2.39, and EVERY tree-sitter 0.26.x GitHub release is built on ubuntu-24.04 and
-# also needs glibc 2.39 (there is no musl/static asset). So compile the crate
-# HERE against the build container's own glibc 2.36. Debian's apt cargo is too
-# old for 0.26's MSRV, so bootstrap a throwaway rustup toolchain and remove it
-# afterwards. cc comes from the gcc installed just above. Mason is set to
+# nvim-treesitter (main branch) compiles parsers with the tree-sitter CLI. On
+# Debian 13 (glibc 2.41) the prebuilt release binary works directly (it needs
+# glibc 2.39), so just download it — no source build. Mason is set to
 # PATH="append" (config/nvim/lua/plugins/mason.lua) so this /usr/local one wins.
-- name: Build tree-sitter CLI {{ treesitter_cli_version }} from source (glibc 2.36-native)
+- name: Download tree-sitter CLI {{ treesitter_cli_version }} (prebuilt)
+  ansible.builtin.get_url:
+    url: "https://github.com/tree-sitter/tree-sitter/releases/download/v{{ treesitter_cli_version }}/tree-sitter-linux-x64.gz"
+    dest: /tmp/tree-sitter.gz
+    mode: "0644"
+
+- name: Install tree-sitter CLI
   ansible.builtin.shell: |
-    set -euo pipefail
-    export RUSTUP_HOME=/tmp/rustup CARGO_HOME=/tmp/cargo
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --profile minimal --default-toolchain stable --no-modify-path
-    "$CARGO_HOME/bin/cargo" install tree-sitter-cli \
-      --version {{ treesitter_cli_version }} --root /usr/local
-    rm -rf /tmp/rustup /tmp/cargo /root/.cargo /root/.rustup
+    set -e
+    gunzip -f /tmp/tree-sitter.gz
+    install -m 0755 /tmp/tree-sitter /usr/local/bin/tree-sitter
+    rm -f /tmp/tree-sitter
   args:
     creates: /usr/local/bin/tree-sitter
-    executable: /bin/bash
 
 - name: Copy priming scripts
   ansible.builtin.copy:
@@ -102,7 +92,7 @@
 # stops git blocking on a prompt with no tty.
 - name: "Prime LazyVim pass 1 (plugins + Mason tools)"
   ansible.builtin.command: >
-    timeout 1500 /usr/local/bin/nvim --headless
+    timeout 2400 /usr/local/bin/nvim --headless
     -c "luafile {{ nvim_work.path }}/prime.lua"
   environment: &prime_env
     NVIM_APPNAME: lvim
@@ -113,7 +103,7 @@
 
 - name: "Prime LazyVim pass 2 (treesitter parsers)"
   ansible.builtin.command: >
-    timeout 900 /usr/local/bin/nvim --headless
+    timeout 1800 /usr/local/bin/nvim --headless
     -c "luafile {{ nvim_work.path }}/prime-ts.lua"
   environment: *prime_env
   changed_when: true
@@ -139,15 +129,6 @@
   ansible.builtin.assert:
     that: lazy_dir.stat.exists
     fail_msg: "LazyVim priming failed — lazy.nvim not present. Check build network access."
-
-- name: Remove clang toolchain (tree-sitter CLI is already built; gcc stays)
-  ansible.builtin.apt:
-    name:
-      - clang
-      - libclang-dev
-    state: absent
-    purge: true
-    autoremove: true
 
 - name: Clean neovim work dir
   ansible.builtin.file:

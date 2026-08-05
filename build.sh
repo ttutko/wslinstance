@@ -3,7 +3,7 @@
 # build.sh — one-shot builder for the airgapped WSL instance.
 #
 # Run this on a NETWORK-CONNECTED machine with Docker. It:
-#   1. builds the Debian 12 image (Ansible installs everything, offline-primed)
+#   1. builds the Debian 13 image (Ansible installs everything, offline-primed)
 #   2. runs the offline self-test inside a `--network none` container (gate)
 #   3. exports a flattened rootfs tarball (the form `wsl --import` needs)
 #   4. bundles the tarball + import helper + docs + tests + checksums

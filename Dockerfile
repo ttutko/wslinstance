@@ -7,7 +7,7 @@
 # airgapped target needs is baked in here at build time (network is used ONLY
 # during this build).
 # =============================================================================
-FROM debian:12-slim
+FROM debian:13-slim
 
 # C.UTF-8 always exists in Debian, so the build works before en_US.UTF-8 is
 # generated. The instance's runtime locale (en_US.UTF-8) is set by the base

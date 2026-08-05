@@ -21,13 +21,10 @@ arch_x86: x86_64
 
 # ---- Versions for the specialised roles (neovim / dotnet / pwsh) ----
 neovim_version: "0.11.7"   # LazyVim requires >= 0.11.2
-# tree-sitter CLI used to compile parsers. Must run on Debian 12 (glibc 2.36).
-# NOTE: no prebuilt 0.26.x binary works — every GitHub release ≥0.26 is built on
-# ubuntu-24.04 and needs glibc 2.39 (and there's no musl asset). So the neovim
-# role BUILDS this version FROM SOURCE (cargo) against the build container's
-# glibc 2.36. To bump: set the version here; dev/prime-test.sh compiles it the
-# same way and is the compat gate. (Prebuilt 0.25.x still runs on 2.36 if you
-# ever need to revert to the download method.)
+# tree-sitter CLI used to compile parsers. The prebuilt release binary needs
+# glibc 2.39; Debian 13 (trixie) ships glibc 2.41, so the neovim role just
+# DOWNLOADS the prebuilt `tree-sitter-linux-x64.gz`. To bump: change the version
+# here; dev/prime-test.sh downloads + compiles parsers with it as the compat gate.
 treesitter_cli_version: "0.26.11"
 dotnet_channels:
   - "8.0"

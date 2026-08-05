@@ -1,6 +1,6 @@
 # CLAUDE.md — maintainer quick reference
 
-Airgapped **WSL2 / Debian 12** image builder. A network-connected machine builds a
+Airgapped **WSL2 / Debian 13** image builder. A network-connected machine builds a
 container, exports its rootfs, and bundles it for `wsl --import` on an airgapped host.
 Everything (apt pkgs, GitHub-release binaries, LazyVim plugins/parsers/LSPs, tldr cache)
 is baked in at build time so the result works with **no network**.
@@ -33,7 +33,7 @@ nerdctl run --rm --network none debian-wsl-airgap /usr/local/bin/wsl-selftest
 
 | Kind of tool | Edit | Notes |
 |---|---|---|
-| apt package | `ansible/roles/apt_tools/tasks/main.yml` | Debian 12 (bookworm) pkgs only. |
+| apt package | `ansible/roles/apt_tools/tasks/main.yml` | Debian 13 (trixie) pkgs only. |
 | GitHub/GitLab release binary | `ansible/vars/versions.yml` → `github_bins:` | See recipe below. |
 | neovim / .NET / pwsh / tree-sitter CLI / tealdeer versions | `ansible/vars/versions.yml` (top vars) | Specialised roles read these. |
 | shell/prompt/aliases | `config/zshrc`, `config/aliases.zsh`, `config/starship.toml` | Deployed to `/root` + `/etc/skel`. |
@@ -70,15 +70,13 @@ Verify every pinned URL at once (HEAD checks) before a long build:
 
 - **nvim ≥ 0.11.2 required by LazyVim.** Too-old nvim → LazyVim prints "Press any key to
   exit" which **deadlocks headless priming forever**. Pinned nvim `0.11.7`.
-- **tree-sitter CLI glibc — BUILT FROM SOURCE.** nvim-treesitter `main` branch compiles
-  parsers via the `tree-sitter` CLI, which must run on Debian 12 (**glibc 2.36**). No prebuilt
-  binary works: Mason's needs glibc 2.39, and **every** tree-sitter `0.26.x` GitHub release is
-  built on ubuntu-24.04 → also needs glibc 2.39 (no musl/static asset). So the neovim role
-  **compiles the crate from source** (throwaway `rustup` toolchain → `cargo install
-  tree-sitter-cli --version {{ treesitter_cli_version }} --root /usr/local`, toolchain removed
-  after) against the build container's own glibc 2.36. Currently pinned **`0.26.11`**. Mason is
-  `PATH="append"` so this `/usr/local` CLI wins. `dev/prime-test.sh` builds it the same way and
-  is the compat gate. (Prebuilt `0.25.x` still runs on 2.36 if you ever revert to a download.)
+- **tree-sitter CLI — prebuilt download.** nvim-treesitter `main` branch compiles parsers via
+  the `tree-sitter` CLI. The prebuilt GitHub release binary needs **glibc 2.39**; Debian 13
+  (trixie) ships **glibc 2.41**, so the neovim role just downloads `tree-sitter-linux-x64.gz` to
+  `/usr/local/bin` (no source build). Currently pinned **`0.26.11`**. Mason is `PATH="append"`
+  so this `/usr/local` CLI wins. `dev/prime-test.sh` downloads it the same way and is the compat
+  gate. (History: on the old Debian-12/glibc-2.36 base no prebuilt ≥0.26 ran, so it was compiled
+  from source via rustup+cargo — the trixie upgrade removed all of that.)
 - **Two priming passes.** `prime.lua` (plugins+Mason) and `prime-ts.lua` (treesitter) run as
   **separate** `nvim --headless` invocations. Doing treesitter in the same session as Mason
   leaves the parser registry uninitialised (`config.list is nil`). Both wrapped in `timeout`.
@@ -101,9 +99,6 @@ Verify every pinned URL at once (HEAD checks) before a long build:
   via Mason. **Caveat to verify:** Mason's `omnisharp` may ship the `net6.0` build; the image
   has .NET 8/10, so omnisharp may need `DOTNET_ROLL_FORWARD=Major` to launch — confirm by
   opening a `.cs` file in a real instance.
-- **tree-sitter CLI source build must pass `--no-modify-path` to rustup.** Otherwise rustup
-  appends `. "/tmp/cargo/env"` to `/root/.bashrc` + `.profile`; we delete `/tmp/cargo`, leaving
-  every login shell erroring `No such file`. (Both the neovim role and `dev/prime-test.sh`.)
 - **Dockerfile slim step must NOT `apt-get autoremove`** — it cascades through Python and
   removes httpie/bpytop. And **preserve `/root/.cache/tealdeer`** (the offline tldr cache);
   only clear `/root/.cache/pip`.

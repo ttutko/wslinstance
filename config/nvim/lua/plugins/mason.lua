@@ -13,8 +13,8 @@ return {
   {
     "mason-org/mason.nvim",
     opts = {
-      -- Append Mason's bin to PATH (don't prepend) so the system tree-sitter
-      -- in /usr/local/bin (glibc-compatible) wins over Mason's glibc-2.39 one.
+      -- Append Mason's bin to PATH (don't prepend) so the tree-sitter CLI the
+      -- neovim role installs in /usr/local/bin wins over any Mason-provided one.
       PATH = "append",
       ensure_installed = {
         "lua-language-server", -- Lua LSP        (prebuilt)

@@ -30,9 +30,9 @@ log("plugin sync done")
 -- NB: tools here install as prebuilt binaries or via the Node/Python runtimes
 -- baked into the image (see langs.lua). csharpier is intentionally excluded — its
 -- Mason `dotnet tool` installer hangs in headless priming; OmniSharp formats C#
--- instead. tree-sitter CLI is intentionally NOT installed here — Mason's is
--- linked against glibc 2.39 and won't run on Debian 12; the neovim role installs
--- a glibc-compatible one to /usr/local/bin instead.
+-- instead. tree-sitter CLI is intentionally NOT installed via Mason here — the
+-- neovim role installs the prebuilt one to /usr/local/bin (Mason is PATH="append"
+-- so that one wins).
 log("installing mason tools...")
 load({ "mason.nvim", "mason-lspconfig.nvim" })
 local ok_reg, registry = pcall(require, "mason-registry")
@@ -52,15 +52,27 @@ if ok_reg then
     "bash-language-server",
     "dockerfile-language-server", "docker-compose-language-service",
   }
-  local remaining = 0
+  -- Trigger an install for anything not yet installed. LazyVim's mason config
+  -- may have ALREADY started installing the ensure_installed set when mason
+  -- loaded, and newer mason.nvim ERRORS ("Package is already installing") if you
+  -- call install() on an in-flight package — so pcall the call and ignore it.
   for _, name in ipairs(tools) do
     local ok_pkg, pkg = pcall(registry.get_package, name)
     if ok_pkg and not pkg:is_installed() then
-      remaining = remaining + 1
-      pkg:install():once("closed", function() remaining = remaining - 1 end)
+      pcall(function() pkg:install() end)
     end
   end
-  vim.wait(480000, function() return remaining == 0 end, 500)
+  -- Wait until every target tool is installed, whoever started it. Polling
+  -- installed-state (not handle "closed" events) is robust to the above pcall.
+  -- Generous window: ~20 npm/pip/binary installs run concurrently and npm can be
+  -- slow (a straggler like bash-language-server otherwise gets cut off).
+  vim.wait(1200000, function()
+    for _, name in ipairs(tools) do
+      local ok_pkg, pkg = pcall(registry.get_package, name)
+      if ok_pkg and not pkg:is_installed() then return false end
+    end
+    return true
+  end, 1000)
 end
 log("mason done")
 

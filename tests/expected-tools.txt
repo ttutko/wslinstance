@@ -14,7 +14,7 @@ fzf	fzf --version
 tmux	tmux -V
 tmux.conf	test -f "$HOME/.tmux.conf"
 tpm	test -f "$HOME/.tmux/plugins/tpm/tpm"
-exa	exa --version
+eza	eza --version
 duf	duf --version
 bpytop	bpytop --version
 xsel	test -x "$(command -v xsel)"

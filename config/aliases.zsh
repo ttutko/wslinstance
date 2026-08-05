@@ -1,10 +1,10 @@
 # Aliases & integrations (baked in; edit here or override in ~/.zshrc.local).
 
-# exa replaces ls with the requested layout.
-if command -v exa >/dev/null; then
-  alias ls='exa --group-directories-first -a -l --icons'
-  alias ll='exa --group-directories-first -a -l --icons'
-  alias lt='exa --group-directories-first -a --icons --tree --level=2'
+# eza replaces ls with the requested layout.
+if command -v eza >/dev/null; then
+  alias ls='eza --group-directories-first -a -l --icons'
+  alias ll='eza --group-directories-first -a -l --icons'
+  alias lt='eza --group-directories-first -a --icons --tree --level=2'
 fi
 
 # kubecolor as a drop-in for kubectl (colorised output).
