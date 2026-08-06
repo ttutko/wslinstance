@@ -2,10 +2,12 @@
 # PowerShell (pwsh) from the official linux tarball (no MS apt feed needed).
 
 - name: Install pwsh runtime dependencies
+  # Debian 13 (trixie) package names: libicu bumped 72→76, and libssl3 was renamed
+  # libssl3t64 by the 64-bit time_t transition. Bump these when the base changes.
   ansible.builtin.apt:
     name:
-      - libicu72
-      - libssl3
+      - libicu76
+      - libssl3t64
       - libunwind8
     state: present
     update_cache: true
