@@ -202,3 +202,14 @@ github_bins:
     bins:
       - src: bw
         dest: /usr/local/bin/bw
+
+  # Editor tooling -------------------------------------------------------
+  # ruff (Python LSP `ruff server` + formatter). Installed here rather than via
+  # Mason: Mason's installer is flaky/hangs for it on trixie (langs.lua registers
+  # `ruff` with mason=false). Self-contained Rust binary.
+  - name: ruff
+    version: "0.16.2"
+    url: "https://github.com/astral-sh/ruff/releases/download/__VER__/ruff-x86_64-unknown-linux-gnu.tar.gz"
+    type: tar.gz
+    bin_src: ruff-x86_64-unknown-linux-gnu/ruff
+    bin_dest: /usr/local/bin/ruff

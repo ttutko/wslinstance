@@ -16,6 +16,11 @@ return {
       -- Append Mason's bin to PATH (don't prepend) so the tree-sitter CLI the
       -- neovim role installs in /usr/local/bin wins over any Mason-provided one.
       PATH = "append",
+      -- Mason handles ONLY the prebuilt-binary / pip tools here — these install
+      -- reliably. The NODE/npm-based LSP servers are deliberately NOT listed:
+      -- current mason.nvim's npm installer hangs on a random one each headless
+      -- build. They're installed via plain `npm install -g` in the neovim role
+      -- and registered in langs.lua/csharp.lua with mason=false. See CLAUDE.md.
       ensure_installed = {
         "lua-language-server", -- Lua LSP        (prebuilt)
         "stylua",              -- Lua formatter  (prebuilt)
@@ -25,21 +30,9 @@ return {
         "marksman",            -- Markdown LSP   (prebuilt, self-contained)
         "omnisharp",           -- C# LSP         (self-contained release)
         "netcoredbg",          -- C# debugger    (prebuilt binary)
-        -- Python (needs Node for pyright; Python for debugpy)
-        "pyright",             -- Python LSP     (node)
-        "ruff",                -- Python lint/fmt(prebuilt binary)
-        "debugpy",             -- Python debugger(pip/venv)
-        -- Web / config (all node-based)
-        "typescript-language-server",  -- TS/JS LSP
-        "html-lsp",            -- HTML LSP       (node)
-        "css-lsp",             -- CSS LSP        (node)
-        "json-lsp",            -- JSON LSP       (node)
-        "yaml-language-server",-- YAML LSP       (node)
-        "prettier",            -- web formatter  (node)
-        -- DevOps
-        "bash-language-server",-- Bash LSP       (node)
-        "dockerfile-language-server",       -- Dockerfile LSP (node)
-        "docker-compose-language-service",  -- compose LSP    (node)
+        -- ruff + debugpy are NOT installed via Mason (its installers fail for them
+        -- on trixie): ruff comes from github_bins, debugpy from a pip venv in the
+        -- neovim role. See CLAUDE.md.
       },
     },
   },

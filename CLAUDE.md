@@ -81,14 +81,25 @@ Verify every pinned URL at once (HEAD checks) before a long build:
   **separate** `nvim --headless` invocations. Doing treesitter in the same session as Mason
   leaves the parser registry uninitialised (`config.list is nil`). Both wrapped in `timeout`.
   `install()` returns an async Task that must be captured and `:wait()`-ed.
-- **Mason offline set — runtimes are now baked.** Node.js (`roles/nodejs`) and Python
-  (`python3-venv`) are in the image, so npm/pip-based servers work offline now: pyright, ruff,
-  debugpy, typescript-language-server, html/css/json-lsp, yaml-language-server, prettier,
-  bash-language-server, dockerfile/docker-compose LSP are all baked (see `langs.lua`). The old
-  "prebuilt-binaries-only" rule is superseded — but a new server still only works offline if
-  the runtime it needs (node / python / .NET) is present. Anything needing Go/Ruby/etc. would
-  need that runtime added first. Every baked server must be in `prime.lua` (bake) **and**
-  registered in `opts.servers` (start) — installing without registering means no completion.
+- **Mason is FLAKY on trixie — most LSP tooling bypasses it.** mason.nvim (v2.3.1, unchanged
+  since it worked in build4) intermittently leaves a random install stuck each headless build —
+  npm servers hang, and even binary/pip tools (`ruff`, `debugpy`, `omnisharp`) fail some runs.
+  Underlying downloads/pip all work fine; it's mason's installer. So:
+  - **npm LSP servers → plain `npm install -g`** (neovim role): pyright, typescript-language-server,
+    vscode-langservers-extracted (html/css/json), yaml-language-server, prettier,
+    dockerfile-language-server-nodejs, @microsoft/compose-language-service, bash-language-server —
+    symlinked onto PATH; `langs.lua` registers each with `mason = false`.
+  - **ruff → `github_bins`** (`versions.yml`), **debugpy → a pip venv** at `/opt/debugpy-venv`
+    (neovim role); `langs.lua` sets `ruff = { mason = false }` and points nvim-dap-python at that
+    venv. Self-test checks these via `command -v` / `import debugpy`.
+  - **Mason keeps ONLY prebuilt binaries** (lua-language-server, stylua, shfmt, shellcheck, taplo,
+    marksman, omnisharp, netcoredbg) — and even those run in a **retry loop** (the "Prime pass 1"
+    task re-runs `prime.lua` in fresh nvim sessions up to 4× until all are present, since a fresh
+    session re-downloads a stuck straggler cleanly). Mirror any change in `dev/prime-test.sh`.
+  - (`csharpier` and the `gitcommit` parser hit the analogous flakiness and were dropped.) The
+    durable fix for all of this is pinning plugins (lazy-lock) — deferred.
+  - A Mason-baked server must be in `prime.lua` (bake) **and** `opts.servers` (start); a
+    bypassed one must be on PATH **and** `opts.servers` with `mason = false`.
 - **C# (`config/nvim/lua/plugins/csharp.lua`).** C#-only (F# half of LazyVim's `lang.dotnet`
   extra deliberately dropped). Mason tools: `omnisharp`, `netcoredbg` — both prebuilt-binary
   downloads that install without dotnet. **`csharpier` is deliberately NOT used:** its Mason

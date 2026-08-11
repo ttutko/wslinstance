@@ -38,19 +38,18 @@ load({ "mason.nvim", "mason-lspconfig.nvim" })
 local ok_reg, registry = pcall(require, "mason-registry")
 if ok_reg then
   pcall(function() registry.refresh() end)
+  -- ONLY prebuilt-binary / pip tools — these install reliably via Mason. All the
+  -- NODE/npm-based LSP servers (pyright, typescript, html/css/json, yaml, prettier,
+  -- docker×2, bash) are intentionally absent: Mason's npm installer hangs on a
+  -- random one each headless build. The neovim role installs them via plain
+  -- `npm install -g` and langs.lua/csharp.lua register them with mason=false.
   local tools = {
     "lua-language-server", "stylua",
     "shfmt", "shellcheck",
     "taplo", "marksman",
     "omnisharp", "netcoredbg",
-    -- Python
-    "pyright", "ruff", "debugpy",
-    -- Web / config (node-based)
-    "typescript-language-server", "html-lsp", "css-lsp",
-    "json-lsp", "yaml-language-server", "prettier",
-    -- DevOps (node-based)
-    "bash-language-server",
-    "dockerfile-language-server", "docker-compose-language-service",
+    -- ruff (github_bins) + debugpy (pip venv) are installed by the neovim role,
+    -- NOT Mason — its installers fail for them on trixie.
   }
   -- Trigger an install for anything not yet installed. LazyVim's mason config
   -- may have ALREADY started installing the ensure_installed set when mason

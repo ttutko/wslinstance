@@ -32,18 +32,21 @@ ts-c_sharp	find "$HOME/.local/share/lvim" -path '*parser*' -name 'c_sharp.so' | 
 mason-lsps	ls "$HOME/.local/share/lvim/mason/bin" 2>/dev/null | grep -q .
 omnisharp	test -d "$HOME/.local/share/lvim/mason/packages/omnisharp"
 netcoredbg	test -d "$HOME/.local/share/lvim/mason/packages/netcoredbg"
-lsp-pyright	test -d "$HOME/.local/share/lvim/mason/packages/pyright"
-lsp-ruff	test -d "$HOME/.local/share/lvim/mason/packages/ruff"
-lsp-debugpy	test -d "$HOME/.local/share/lvim/mason/packages/debugpy"
-lsp-typescript	test -d "$HOME/.local/share/lvim/mason/packages/typescript-language-server"
-lsp-html	test -d "$HOME/.local/share/lvim/mason/packages/html-lsp"
-lsp-css	test -d "$HOME/.local/share/lvim/mason/packages/css-lsp"
-lsp-json	test -d "$HOME/.local/share/lvim/mason/packages/json-lsp"
-lsp-yaml	test -d "$HOME/.local/share/lvim/mason/packages/yaml-language-server"
-lsp-prettier	test -d "$HOME/.local/share/lvim/mason/packages/prettier"
-lsp-bash	test -d "$HOME/.local/share/lvim/mason/packages/bash-language-server"
-lsp-dockerfile	test -d "$HOME/.local/share/lvim/mason/packages/dockerfile-language-server"
-lsp-docker-compose	test -d "$HOME/.local/share/lvim/mason/packages/docker-compose-language-service"
+# ruff via github_bins (PATH); debugpy via a pip venv — Mason installers fail for
+# these on trixie.
+lsp-ruff	command -v ruff
+lsp-debugpy	/opt/debugpy-venv/bin/python -c "import debugpy"
+# npm-based LSP servers: installed via `npm install -g` onto PATH (not Mason).
+lsp-pyright	command -v pyright-langserver
+lsp-typescript	command -v typescript-language-server
+lsp-html	command -v vscode-html-language-server
+lsp-css	command -v vscode-css-language-server
+lsp-json	command -v vscode-json-language-server
+lsp-yaml	command -v yaml-language-server
+lsp-prettier	command -v prettier
+lsp-bash	command -v bash-language-server
+lsp-dockerfile	command -v docker-langserver
+lsp-docker-compose	command -v docker-compose-langserver
 yazi	yazi --version
 
 # --- git ---

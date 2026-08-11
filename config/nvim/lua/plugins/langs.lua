@@ -14,22 +14,27 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = {
+      -- NOTE: every npm-based server below is set `mason = false` — the neovim
+      -- role installs them via plain `npm install -g` onto PATH (Mason's npm
+      -- installer hangs headless). `mason = false` makes LazyVim start them from
+      -- the PATH binary and skip the Mason install. Only ruff/marksman/taplo are
+      -- Mason-managed here (reliable prebuilt binaries).
       servers = {
         -- Python
-        pyright = {},
-        ruff = {}, -- linter + formatter (also used by conform below)
+        pyright = { mason = false },
+        ruff = { mason = false }, -- ruff binary from github_bins (on PATH); also conform
         -- Web / config
-        ts_ls = {}, -- typescript-language-server (TS/JS)
-        html = {},
-        cssls = {},
-        jsonls = {},
-        yamlls = {},
+        ts_ls = { mason = false }, -- typescript-language-server (TS/JS)
+        html = { mason = false },
+        cssls = { mason = false },
+        jsonls = { mason = false },
+        yamlls = { mason = false },
         -- DevOps
-        bashls = {},
-        dockerls = {},
-        docker_compose_language_service = {},
-        marksman = {}, -- Markdown (binary already baked)
-        taplo = {}, -- TOML (binary already baked)
+        bashls = { mason = false },
+        dockerls = { mason = false },
+        docker_compose_language_service = { mason = false },
+        marksman = {}, -- Markdown (Mason prebuilt binary)
+        taplo = {}, -- TOML (Mason prebuilt binary)
       },
     },
   },
@@ -61,9 +66,9 @@ return {
     ft = "python",
     dependencies = { "mfussenegger/nvim-dap" },
     config = function()
-      -- debugpy is baked by Mason; use its bundled venv python.
-      local path = LazyVim.get_pkg_path("debugpy", "/venv/bin/python")
-      require("dap-python").setup(path)
+      -- debugpy is installed into a dedicated venv by the neovim role (Mason's
+      -- pip installer fails for it on trixie). Point dap-python at that python.
+      require("dap-python").setup("/opt/debugpy-venv/bin/python")
     end,
   },
 }

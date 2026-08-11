@@ -77,6 +77,44 @@
   args:
     creates: /usr/local/bin/tree-sitter
 
+# npm-based LSP servers are installed via plain `npm install -g`, NOT Mason:
+# current mason.nvim's npm installer HANGS on a random server each headless build
+# (bash-language-server, dockerfile, docker-compose… rotate), while a single
+# `npm install -g` of all of them is reliable (~8s). node comes from the nodejs
+# role (runs before this one). langs.lua/csharp.lua register each of these with
+# `mason = false` so LazyVim starts them from these PATH binaries. Mason keeps
+# only the reliable prebuilt-binary / pip tools (see prime.lua). See CLAUDE.md.
+- name: Install npm-based LSP servers via npm (Mason's npm installer hangs)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    npm install -g \
+      pyright typescript-language-server typescript vscode-langservers-extracted \
+      yaml-language-server prettier dockerfile-language-server-nodejs \
+      @microsoft/compose-language-service bash-language-server
+    pfx="$(npm prefix -g)/bin"
+    for b in pyright pyright-langserver typescript-language-server \
+             vscode-html-language-server vscode-css-language-server vscode-json-language-server \
+             yaml-language-server prettier docker-langserver docker-compose-langserver \
+             bash-language-server; do
+      ln -sf "$pfx/$b" "/usr/local/bin/$b"
+    done
+  args:
+    creates: /usr/local/bin/bash-language-server
+    executable: /bin/bash
+
+# debugpy (Python DAP) — installed into a dedicated venv rather than via Mason:
+# Mason's pip installer fails for it on trixie/py3.13. langs.lua's nvim-dap-python
+# points at this venv's python. (python3-venv comes from apt_tools.)
+- name: Install debugpy into a venv (Mason's pip installer fails for it on trixie)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    python3 -m venv /opt/debugpy-venv
+    /opt/debugpy-venv/bin/python -m pip install --quiet --upgrade pip
+    /opt/debugpy-venv/bin/python -m pip install --quiet debugpy
+  args:
+    creates: /opt/debugpy-venv/bin/debugpy
+    executable: /bin/bash
+
 - name: Copy priming scripts
   ansible.builtin.copy:
     src: "{{ item }}"
@@ -90,15 +128,36 @@
 # session with the Mason pass). Wrapped in `timeout` so a headless deadlock
 # fails the build (rc 124) instead of hanging forever; GIT_TERMINAL_PROMPT=0
 # stops git blocking on a prompt with no tty.
-- name: "Prime LazyVim pass 1 (plugins + Mason tools)"
-  ansible.builtin.command: >
-    timeout 2400 /usr/local/bin/nvim --headless
-    -c "luafile {{ nvim_work.path }}/prime.lua"
+# Mason's installers are occasionally flaky under load — a random tool's download
+# stalls and never completes within one headless session (a different straggler
+# each run; not a mason-version issue — 2.3.1 is unchanged since build4). So run
+# prime.lua in a RETRY loop: prime.lua is idempotent (skips already-installed
+# tools), and each attempt is a FRESH nvim session, so a straggler re-downloads
+# cleanly instead of staying stuck. Fail the build only if tools are still
+# missing after the retries.
+- name: "Prime LazyVim pass 1 (plugins + Mason tools), retrying stragglers"
+  ansible.builtin.shell: |
+    set -uo pipefail
+    tools="lua-language-server stylua shfmt shellcheck taplo marksman omnisharp netcoredbg"
+    for attempt in 1 2 3 4; do
+      echo "=== prime.lua attempt $attempt ==="
+      timeout 2400 /usr/local/bin/nvim --headless -c "luafile {{ nvim_work.path }}/prime.lua" || true
+      missing=""
+      for t in $tools; do
+        [ -d "/root/.local/share/lvim/mason/packages/$t" ] || missing="$missing $t"
+      done
+      if [ -z "$missing" ]; then echo "all mason tools present after attempt $attempt"; exit 0; fi
+      echo "attempt $attempt still missing:$missing — retrying"
+    done
+    echo "FATAL: mason tools still missing after retries:$missing" >&2
+    exit 1
   environment: &prime_env
     NVIM_APPNAME: lvim
     HOME: /root
     GIT_TERMINAL_PROMPT: "0"
     GIT_SSH_COMMAND: "ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+  args:
+    executable: /bin/bash
   changed_when: true
 
 - name: "Prime LazyVim pass 2 (treesitter parsers)"
