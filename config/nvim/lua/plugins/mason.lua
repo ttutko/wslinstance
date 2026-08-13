@@ -27,7 +27,6 @@ return {
         "shfmt",               -- shell formatter(prebuilt)
         "shellcheck",          -- shell linter   (prebuilt)
         "taplo",               -- TOML LSP/fmt   (prebuilt)
-        "marksman",            -- Markdown LSP   (prebuilt, self-contained)
         "omnisharp",           -- C# LSP         (self-contained release)
         "netcoredbg",          -- C# debugger    (prebuilt binary)
         -- ruff + debugpy are NOT installed via Mason (its installers fail for them

@@ -59,7 +59,9 @@ return {
   {
     "mfussenegger/nvim-dap",
     optional = true,
-    opts = function()
+    -- `config` (not `opts`): nvim-dap has no setup(), so lazy.nvim's default
+    -- opts-handler would call require("dap").setup(opts) and error on nil.
+    config = function()
       local dap = require("dap")
       if not dap.adapters["netcoredbg"] then
         -- Resolve netcoredbg robustly: prefer PATH, but fall back to the Mason

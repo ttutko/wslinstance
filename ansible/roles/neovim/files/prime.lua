@@ -46,7 +46,7 @@ if ok_reg then
   local tools = {
     "lua-language-server", "stylua",
     "shfmt", "shellcheck",
-    "taplo", "marksman",
+    "taplo",
     "omnisharp", "netcoredbg",
     -- ruff (github_bins) + debugpy (pip venv) are installed by the neovim role,
     -- NOT Mason — its installers fail for them on trixie.

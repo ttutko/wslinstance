@@ -138,7 +138,7 @@
 - name: "Prime LazyVim pass 1 (plugins + Mason tools), retrying stragglers"
   ansible.builtin.shell: |
     set -uo pipefail
-    tools="lua-language-server stylua shfmt shellcheck taplo marksman omnisharp netcoredbg"
+    tools="lua-language-server stylua shfmt shellcheck taplo omnisharp netcoredbg"
     for attempt in 1 2 3 4; do
       echo "=== prime.lua attempt $attempt ==="
       timeout 2400 /usr/local/bin/nvim --headless -c "luafile {{ nvim_work.path }}/prime.lua" || true

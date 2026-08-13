@@ -33,7 +33,7 @@ return {
         bashls = { mason = false },
         dockerls = { mason = false },
         docker_compose_language_service = { mason = false },
-        marksman = {}, -- Markdown (Mason prebuilt binary)
+        marksman = { mason = false }, -- Markdown (github_bins binary on PATH)
         taplo = {}, -- TOML (Mason prebuilt binary)
       },
     },

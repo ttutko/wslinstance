@@ -204,12 +204,20 @@ github_bins:
         dest: /usr/local/bin/bw
 
   # Editor tooling -------------------------------------------------------
-  # ruff (Python LSP `ruff server` + formatter). Installed here rather than via
-  # Mason: Mason's installer is flaky/hangs for it on trixie (langs.lua registers
-  # `ruff` with mason=false). Self-contained Rust binary.
+  # ruff (Python LSP `ruff server` + formatter) and marksman (Markdown LSP) are
+  # installed here rather than via Mason — Mason's installer is flaky on trixie
+  # (a random tool sticks each build). langs.lua registers both with mason=false.
   - name: ruff
     version: "0.16.2"
     url: "https://github.com/astral-sh/ruff/releases/download/__VER__/ruff-x86_64-unknown-linux-gnu.tar.gz"
     type: tar.gz
     bin_src: ruff-x86_64-unknown-linux-gnu/ruff
     bin_dest: /usr/local/bin/ruff
+
+  # marksman is a raw binary; it's a .NET app so it needs libicu at runtime
+  # (present via the powershell role).
+  - name: marksman
+    version: "2026-02-08"
+    url: "https://github.com/artempyanykh/marksman/releases/download/__VER__/marksman-linux-x64"
+    type: raw
+    bin_dest: /usr/local/bin/marksman

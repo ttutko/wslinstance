@@ -35,6 +35,7 @@ netcoredbg	test -d "$HOME/.local/share/lvim/mason/packages/netcoredbg"
 # ruff via github_bins (PATH); debugpy via a pip venv — Mason installers fail for
 # these on trixie.
 lsp-ruff	command -v ruff
+lsp-marksman	command -v marksman
 lsp-debugpy	/opt/debugpy-venv/bin/python -c "import debugpy"
 # npm-based LSP servers: installed via `npm install -g` onto PATH (not Mason).
 lsp-pyright	command -v pyright-langserver

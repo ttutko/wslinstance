@@ -74,6 +74,8 @@ done
 curl -fsSL -o /tmp/ruff.tar.gz "https://github.com/astral-sh/ruff/releases/download/0.16.2/ruff-x86_64-unknown-linux-gnu.tar.gz"
 tar -C /tmp -xzf /tmp/ruff.tar.gz
 install -m0755 /tmp/ruff-x86_64-unknown-linux-gnu/ruff /usr/local/bin/ruff
+# marksman (Markdown LSP) — github_bins in the real build; Mason sticks on it.
+curl -fsSL -o /usr/local/bin/marksman "https://github.com/artempyanykh/marksman/releases/download/2026-02-08/marksman-linux-x64" && chmod +x /usr/local/bin/marksman
 python3 -m venv /opt/debugpy-venv
 /opt/debugpy-venv/bin/python -m pip install --quiet debugpy >/dev/null 2>&1
 # tree-sitter CLI: prebuilt binary (Debian 13's glibc 2.41 satisfies the release
@@ -92,7 +94,7 @@ P=/provision/ansible/roles/neovim/files
 echo "=== PASS 1 (plugins + Mason), retrying stragglers ==="
 # Mirror the neovim role: mason installers are occasionally flaky, so retry
 # prime.lua in fresh sessions until all mason tools land.
-MTOOLS="lua-language-server stylua shfmt shellcheck taplo marksman omnisharp netcoredbg"
+MTOOLS="lua-language-server stylua shfmt shellcheck taplo omnisharp netcoredbg"
 for attempt in 1 2 3 4; do
   echo "--- prime.lua attempt $attempt ---"
   timeout 2400 nvim --headless -c "luafile $P/prime.lua" || true
@@ -115,12 +117,13 @@ echo "MASON PACKAGES (prebuilt binaries — reliable):"
 # Only prebuilt-binary tools are Mason-managed. npm servers (npm install -g),
 # ruff (github_bins), and debugpy (pip venv) bypass Mason — its installers are
 # flaky/hang for them on trixie. csharpier is not baked (OmniSharp formats C#).
-for t in lua-language-server stylua shfmt shellcheck taplo marksman \
+for t in lua-language-server stylua shfmt shellcheck taplo \
          omnisharp netcoredbg; do
   test -d "/root/.local/share/lvim/mason/packages/$t" && echo "  OK $t" || echo "  MISSING $t"
 done
 echo "DIRECT INSTALLS (not Mason):"
 command -v ruff >/dev/null 2>&1 && echo "  OK ruff (github_bins)" || echo "  MISSING ruff"
+command -v marksman >/dev/null 2>&1 && echo "  OK marksman (github_bins)" || echo "  MISSING marksman"
 /opt/debugpy-venv/bin/python -c 'import debugpy' 2>/dev/null && echo "  OK debugpy (venv)" || echo "  MISSING debugpy"
 echo "NPM LSP SERVERS (on PATH, not Mason):"
 for b in pyright-langserver typescript-language-server vscode-html-language-server \
