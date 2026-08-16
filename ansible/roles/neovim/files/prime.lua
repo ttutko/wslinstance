@@ -51,27 +51,30 @@ if ok_reg then
     -- ruff (github_bins) + debugpy (pip venv) are installed by the neovim role,
     -- NOT Mason — its installers fail for them on trixie.
   }
-  -- Trigger an install for anything not yet installed. LazyVim's mason config
-  -- may have ALREADY started installing the ensure_installed set when mason
-  -- loaded, and newer mason.nvim ERRORS ("Package is already installing") if you
-  -- call install() on an in-flight package — so pcall the call and ignore it.
+  -- Trigger installs and wait on mason's COMPLETION EVENTS, not on is_installed().
+  -- Polling is_installed() is racy: mason flips a package's installed-state true
+  -- before its install task finishes writing, so the wait returns early and the
+  -- `qa!` below terminates the still-running install ("Neovim is exiting while
+  -- packages are still installing"), leaving a random tool half-installed. The
+  -- install:success / install:failed events fire on ACTUAL completion, whoever
+  -- started the install (LazyVim's mason config may have already begun the
+  -- ensure_installed set; newer mason.nvim also errors if we call install() on an
+  -- in-flight package — hence the pcall).
+  local pending = 0
   for _, name in ipairs(tools) do
     local ok_pkg, pkg = pcall(registry.get_package, name)
     if ok_pkg and not pkg:is_installed() then
+      pending = pending + 1
+      local function settled() pending = pending - 1 end
+      pkg:once("install:success", settled)
+      pkg:once("install:failed", settled)
       pcall(function() pkg:install() end)
     end
   end
-  -- Wait until every target tool is installed, whoever started it. Polling
-  -- installed-state (not handle "closed" events) is robust to the above pcall.
-  -- Generous window: ~20 npm/pip/binary installs run concurrently and npm can be
-  -- slow (a straggler like bash-language-server otherwise gets cut off).
-  vim.wait(1200000, function()
-    for _, name in ipairs(tools) do
-      local ok_pkg, pkg = pcall(registry.get_package, name)
-      if ok_pkg and not pkg:is_installed() then return false end
-    end
-    return true
-  end, 1000)
+  vim.wait(1200000, function() return pending == 0 end, 200)
+  -- Belt-and-suspenders: give any final receipt writes a moment to flush before
+  -- we quit, and only report done once every target is actually on disk.
+  vim.wait(5000, function() return false end, 1000)
 end
 log("mason done")
 
